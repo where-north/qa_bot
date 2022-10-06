@@ -1,0 +1,20 @@
+version: "2.0"
+#stories:
+#  - story: Story from Conversation ID 1894a680d1c44d5bb949a51481a4b70c
+#    steps:
+#      - intent: nlu_fallback
+#      - action: action_two_stage_fallback
+#      - active_loop: action_two_stage_fallback
+#      - intent: out_of_scope
+#      - active_loop: null
+#      - action: utter_stilldontunderstand
+#
+#  - story: Story from Conversation ID 1894a680d1c44d5bb949a51481a4b70c
+#    steps:
+#      - intent: nlu_fallback
+#      - action: action_two_stage_fallback
+#      - active_loop: action_two_stage_fallback
+#      - intent: deny
+#      - active_loop: null
+#      - action: utter_canthelp
+

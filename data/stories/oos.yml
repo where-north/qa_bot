@@ -1,0 +1,12 @@
+version: "2.0"
+stories:
+- story: out of scope
+  steps:
+  - intent: out_of_scope
+  - action: action_trigger_response_selector
+- story: say confirm outside the flows 2
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: affirm
+  - action: utter_thumbsup

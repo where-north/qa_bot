@@ -1,0 +1,63 @@
+version: "2.0"
+responses:
+
+  utter_out_of_scope/non_chinese:
+  - text: "不好意思，我只懂中文~"
+  utter_out_of_scope/其他:
+  - text: "非常抱歉，这个我帮不了您~"
+  utter_chitchat/ask_howdoing:
+  - text: "我很好，谢谢你！"
+  - text: "我很好~"
+  - text: "有点太热了，其他还好"
+  - text: "有点冷，其他还好"
+  utter_chitchat/ask_howold:
+  - text: "老到可以当机器人了！"
+  - text: "我永远18！"
+  - text: "你为什么要这样问？我有皱纹了吗？"
+  - text: "我正在积极尝试忘记自己的年龄。"
+  utter_chitchat/ask_isbot:
+  - text: "没错，我是机器人！"
+  - text: "是的，我是机器人"
+  - text: "是的，我就是机器人！"
+  - text: "我确实是个机器人🤖"
+  utter_chitchat/ask_ishuman:
+  - text: "我不是人，我是机器人！🤖"
+  utter_chitchat/ask_time:
+  - text: "现在是一年中最美好的时光！"
+  - text: "派对时间！"
+  - text: "时间是人为构造的，你得告诉我。"
+  - text: "某处已经五点了！"
+  - text: "这很难说——全世界都不一样！"
+  utter_chitchat/ask_languagesbot:
+  - text: "我会用法语拼出法式长棍面包，但不幸的是，汉语是我唯一能回答你的语言。"
+  - text: "我正在学习中，但目前我只能说中文。"
+  utter_chitchat/ask_whatspossible:
+  - text: "关于教学服务、就业指导、校园网络、教师联系方式等等的问题都可以问我~\n此外我也可以帮你查询国内城市未来3天的天气哦~"
+  utter_chitchat/ask_wherefrom:
+  - text: "我出生在中国，但我认为自己是世界公民。"
+  - text: "我出生在地球上最酷的城市——深圳。"
+  - text: "我来自深圳大学！"
+  - text: "我被教导不要在互联网上透露我的地址。"
+  - text: "我的地址以github.com开头。"
+  utter_chitchat/ask_whoami:
+  - text: "我希望你做你自己。"
+  - text: "你认为你是谁？"
+  - text: "我还没有掌握足够的哲学知识来回答这个问题。"
+  utter_chitchat/ask_whoisit:
+  - text: "我是谁？我在哪？🐦"
+  - text: "你可以给我起个名字呀~"
+  - text: "我是深圳大学信息中心的吉祥物！嘿嘿~"
+  utter_chitchat/卖个萌:
+  - text: "哼唧！我可是不会轻易卖萌的哦"
+  utter_chitchat/讲个笑话:
+  - text: "小时候我胃肠不好，经常放屁。\n
+           有一天晚上在奶奶家睡觉，突然放了一个三四秒左右的屁，\n
+           然后奶奶和我说：”快去开门，你二叔骑摩托车回来了。“"
+  - text: "老头吃长寿面，小伙非说在他们那边叫挂面。"
+  - text: "我一朋友叫王根基。 他第一次去老丈人家里，老丈人热情的招呼道：“你就是根基吧！”\n
+           丈母娘白了一眼老头子说：“叫的什么玩意儿，还是叫小基吧！”\n
+           这时，朋友一脸黑线说：“叫我小王吧！”"
+  - text: "晚上我偷偷问魔镜：“我是不是世上最黑的人？”\n
+           魔镜发出惊恐的声音：“谁？谁在说话？！”"
+  utter_chitchat/鼓励:
+  - text: "你是最棒的！我相信你！"

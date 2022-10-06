@@ -1,0 +1,50 @@
+version: "2.0"
+
+rules:
+
+  - rule: 选课问题
+    steps:
+      - intent: 选课问题
+      - action: action_trigger_response_selector
+
+  - rule: 火车票优惠
+    steps:
+      - intent: 火车票优惠
+      - action: action_trigger_response_selector
+
+  - rule: 心理咨询
+    steps:
+      - intent: 心理咨询
+      - action: action_trigger_response_selector
+
+  - rule: 图书馆服务
+    steps:
+      - intent: 图书馆服务
+      - action: action_trigger_response_selector
+
+  - rule: 就业指导
+    steps:
+      - intent: 就业指导
+      - action: action_trigger_response_selector
+
+  - rule: 校园卡
+    steps:
+      - intent: 校园卡
+      - action: action_trigger_response_selector
+
+  - rule: out of scope
+    steps:
+      - intent: out_of_scope
+      - action: action_trigger_response_selector
+
+  - rule: 查询天气
+    steps:
+      - intent: 查询天气
+      - action: FindTheCorrespondingweather
+
+  - rule: anything else? - yes
+    steps:
+      - action: utter_anything_else
+      - intent: affirm
+      - action: utter_what_help
+

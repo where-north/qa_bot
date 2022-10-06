@@ -1,0 +1,92 @@
+version: "2.0"
+stories:
+
+- story: story number 6
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+- story: story number 7
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: greet
+  - action: action_greet_user
+  - intent: chitchat
+  - action: utter_chitchat
+
+- story: story number 11, continue
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+
+- story: story number 14
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: greet
+  - action: action_greet_user
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+
+- story: story number 17
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: deny
+  - action: utter_nohelp
+  - intent: out_of_scope
+  - action: action_trigger_response_selector
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: chitchat
+  - action: utter_chitchat
+
+- story: Story from conversation with 7830abb04e1c49809d89b0d420443928 on November 19th 2018
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: out_of_scope
+  - action: action_trigger_response_selector
+  - intent: chitchat
+  - action: utter_chitchat
+
+- story: Story from conversation with 29d264d8ce574a11bde572f0e79b73f3 on November 19th 2018
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: greet
+  - action: action_greet_user
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: affirm
+  - action: utter_thumbsup
+- story: Story from conversation with 6fd65c93e374489f9c8d76697ab9c493 on November 19th 2018
+  steps:
+  - intent: greet
+  - action: action_greet_user
+  - intent: greet
+  - action: action_greet_user
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: affirm
+  - action: utter_thumbsup

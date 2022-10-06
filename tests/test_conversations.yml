@@ -1,0 +1,25 @@
+version: "2.0"
+stories:
+
+- story: Activate 2 stage fallback
+  steps:
+  - user: |
+      /nlu_fallback
+    intent: nlu_fallback
+  - action: action_two_stage_fallback
+  - active_loop: action_two_stage_fallback
+
+- story: Complete 2 stage fallback & restart
+  steps:
+  - user: |
+      /nlu_fallback
+    intent: nlu_fallback
+  - action: action_two_stage_fallback
+  - active_loop: action_two_stage_fallback
+  - user: |
+      /nlu_fallback
+    intent: nlu_fallback
+  - action: action_two_stage_fallback
+  - active_loop: null
+  - action: action_restart_with_button
+
