@@ -222,7 +222,7 @@ class ActionDefaultAskAffirmation(Action):
 
         first_intent_names = [
             intent.get("name", "")
-            if intent.get("name", "") not in ["chitchat", '图书馆服务', '就业指导', '心理咨询', '火车票优惠', '选课问题',
+            if intent.get("name", "") not in ["chitchat", '图书馆服务', '就业指导', '后勤服务', '教学教务',
                                               '校园卡']
             else tracker.latest_message.get("response_selector")
                 .get(intent.get("name", ""))

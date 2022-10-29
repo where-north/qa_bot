@@ -1,0 +1,11 @@
+version: "2.0"
+nlu:
+  - regex: greet
+    examples: |
+      - 嗨[^\s]*
+      - 我是[^\s]*
+
+  - regex: 联系方式
+    examples: |
+      - [^\s]*联系方式
+      - [^\s]*邮箱

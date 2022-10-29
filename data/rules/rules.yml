@@ -2,19 +2,14 @@ version: "2.0"
 
 rules:
 
-  - rule: 选课问题
+  - rule: 教学教务
     steps:
-      - intent: 选课问题
+      - intent: 教学教务
       - action: action_trigger_response_selector
 
-  - rule: 火车票优惠
+  - rule: 后勤服务
     steps:
-      - intent: 火车票优惠
-      - action: action_trigger_response_selector
-
-  - rule: 心理咨询
-    steps:
-      - intent: 心理咨询
+      - intent: 后勤服务
       - action: action_trigger_response_selector
 
   - rule: 图书馆服务

@@ -17,26 +17,26 @@ pipeline:
     onnx: false  # 因为有依赖，默认未开启
     quantize: false
   - name: RegexFeaturizer
-    # Text will be processed with case sensitive as default
+    # During training the RegexFeaturizer creates a list of regular expressions defined in the training data format.
+    # For each regex, a feature will be set marking whether this expression was found in the user message or not.
+    # All features will later be fed into an intent classifier / entity extractor to simplify classification
+    # 设置大小写不敏感
     case_sensitive: False
-    # use match word boundaries for lookup table
+    # 中文不使用空格进行分词的语言，需要设置 use_word_boundaries: False
     use_word_boundaries: False
   - name: DIETClassifier # Dual Intent Entity Transformer (DIET) 用于意图分类和实体提取
     epochs: 100
   - name: RegexEntityExtractor # 使用训练数据中定义的查找表（lookup table）和/或正则表达式提取实体
-    use_word_boundaries: False #中文环境要用
+    use_word_boundaries: False # 中文环境设置为False
     use_lookup_tables: True
     use_regexes: True
   - name: EntitySynonymMapper # 将同义实体值映射到相同的值。
   - name: ResponseSelector
     epochs: 100
-    retrieval_intent: 选课问题 # 只针对faq检索意图训练响应选择器模型
+    retrieval_intent: 教学教务 # 只针对faq检索意图训练响应选择器模型
   - name: ResponseSelector
     epochs: 100
-    retrieval_intent: 火车票优惠 # 只针对faq检索意图训练响应选择器模型
-  - name: ResponseSelector
-    epochs: 100
-    retrieval_intent: 心理咨询 # 只针对faq检索意图训练响应选择器模型
+    retrieval_intent: 后勤服务 # 只针对faq检索意图训练响应选择器模型
   - name: ResponseSelector
     epochs: 100
     retrieval_intent: 图书馆服务 # 只针对faq检索意图训练响应选择器模型
@@ -68,11 +68,11 @@ policies:
   - name: TEDPolicy
     max_history: 5
     epochs: 100
-#  - name: compoments.polices.ask_again_policy.AskAgainRulePolicy # 支持再问一次，比如问了“深圳天气”之后再问“那成都呢”。
-#    core_fallback_threshold: 0.5
-#    ask_again_intent: "再问一次"
-#    need_ask_again_intents:
-#      - "查询天气"
+  #  - name: compoments.polices.ask_again_policy.AskAgainRulePolicy # 支持再问一次，比如问了“深圳天气”之后再问“那成都呢”。
+  #    core_fallback_threshold: 0.5
+  #    ask_again_intent: "再问一次"
+  #    need_ask_again_intents:
+  #      - "查询天气"
   - name: RulePolicy
     core_fallback_threshold: 0.3
     core_fallback_action_name: "action_default_fallback"
