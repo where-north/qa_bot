@@ -47,6 +47,24 @@ pipeline:
     epochs: 100
     retrieval_intent: 校园卡 # 只针对faq检索意图训练响应选择器模型
   - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 校医院 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 校园网服务 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 本科生招生 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 研究生招生 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 迎新服务 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 常用联系方式 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
     retrieval_intent: out_of_scope # 超出范围的意图
     scale_loss: false
     epochs: 100
@@ -55,7 +73,7 @@ pipeline:
     scale_loss: false
     epochs: 100
   - name: FallbackClassifier # 如果NLU意图分类不明确，则使用意图nlu_fallback对消息进行分类。置信度设置为与回退阈值相同。
-    threshold: 0.7
+    threshold: 0.9
     ambiguity_threshold: 0.1
 
 # Configuration for Rasa Core.

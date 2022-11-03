@@ -18,11 +18,9 @@ intents:
 - react_negative
 - react_positive
 - suggestion # 未有数据
-#- restart
 - thank
 - trigger_response_selector:
     use_entities: []
-#- 再问一次
 - 图书馆服务
 - 就业指导
 - 后勤服务
@@ -30,9 +28,14 @@ intents:
 - 联系方式
 - 教学教务
 - 校园卡
+- 校医院
+- 校园网服务
+- 本科生招生
+- 研究生招生
+- 迎新服务
+- 常用联系方式
 entities:
 - department
-- full_name
 - location
 
 slots:
@@ -53,11 +56,7 @@ slots:
     influence_conversation: false
   department:
     type: any
-    initial_value: 未知部门
-    influence_conversation: false
-  full_name:
-    type: any
-    initial_value: 未指定具体老师
+    initial_value: null
     influence_conversation: false
   location:
     type: text
@@ -70,21 +69,9 @@ responses:
   utter_contact_human:
   - text: 暂时还没有人工服务哦~
   utter_greet:
-  - text: 您好！请问有什么可以帮到您？
-  utter_did_that_help:
-  - text: 有帮到你吗?
-  utter_search_contact_information1:
-  - text: 正在为您查找{department}-{full_name}的联系方式...
-  utter_search_contact_information2:
-  - text: 正在为您查找{full_name}的联系方式...
-  utter_search_contact_information3:
-  - text: 正在为您查找{department}的联系方式...
-  utter_search_failure:
-  - text: 抱歉，没有在数据库查找到您要的联系方式。
+  - text: 您好！请问有什么可以帮到您？?
   utter_anything_else:
   - text: 还有什么我可以帮你的吗？
-  utter_ask_problem_description:
-  - text: 你能描述一下你遇到的问题吗？
   utter_ask_feedback:
   - buttons:
     - payload: '/feedback{{"feedback_value": "positive"}}'
@@ -96,24 +83,12 @@ responses:
   - text: 感谢您的反馈！
   utter_neg_feedback:
   - text: 很抱歉没能帮到您。如果您对我如何改进有任何建议，请告诉我。
-  utter_ask_name:
-  - text: 你叫什么名字？
-  utter_ask_person_name:
-  - text: 你叫什么名字？
-  utter_awesome:
-  - text: 太好了，谢谢！ 👍
-  - text: 谢谢你！ 😄
-  - text: 谢谢！👌
-  - text: 谢谢你！
   utter_bye:
   - text: 拜拜!
   - text: Bye!
   - text: 再见
   - text: 再见，很高兴与您交谈！
   - text: Bye bye!
-  utter_can_do:
-  - text: 肯定的！
-  - text: 可以做！
   utter_canthelp:
   - text: 很抱歉没能帮到你。
   utter_stilldontunderstand:
@@ -123,22 +98,14 @@ responses:
   - text: 没看懂，能具体点吗？
   - text: 对不起，我没听懂你的意思。可以再具体点吗？
   - text: 我不太明白，你可以再具体点吗？
-  utter_great:
-  - text: 很棒！👍
-  - text: 太棒了！ 🙌
-  - text: 很酷！ 🎉
   utter_greet_noname:
   - text: 嗨!
   - text: 你好!
   - text: 嘿!
   utter_inform_privacypolicy:
   - text: 与我聊天即表示您同意我们的[隐私政策](https://rasa.com/privacy-policy/)。
-  utter_no_speak:
-  - text: 恐怕我们不能聊天了😢
   utter_nohelp:
   - text: 目前我能做的就是这些。如果您对我应该学习的内容有任何建议，请告诉我！
-  utter_not_sure:
-  - text: 嗯，我不太明白你的意思...
   utter_noworries:
   - text: 别客气！
   - text: 我很乐意提供帮助。
@@ -152,25 +119,14 @@ responses:
   - text: 😊
   - text: 👏
   - text: 😍
-  utter_restart_with_button:
-  - buttons:
-    - payload: /restart
-      title: 重启
-    text: 如果您想重新开始，请单击下面的按钮。
-  utter_thank_suggestion:
-  - text: 感谢您的输入！
   utter_thumbsup:
   - text: 好的
   utter_what_help:
   - text: 好的，我有什么可以帮你的？
   utter_ask_rephrase:
   - text: 我不太明白，你可以描述得更具体点吗？
-  utter_no_further_info:
-  - text: 抱歉，这是我获得的关于该主题的所有信息了😕
 actions:
 #- action_query_weather # 免费
-- action_query_contact_information
-- action_ask_who_for_contact
 - action_trigger_response_selector
 - action_default_ask_affirmation
 - action_default_fallback

@@ -84,81 +84,6 @@ WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
 #         return f"{res['text']} 风向 {res['windDir']}\n温度: {res['temp']} 摄氏度\n体感温度：{res['feelsLike']}"
 
 
-class ActionAskWhoForContact(Action):
-    """询问需要哪位老师或部门的联系方式"""
-
-    def name(self) -> Text:
-        return "action_ask_who_for_contact"
-
-    def __init__(self) -> None:
-        self.flag = True
-
-    def run(
-            self,
-            dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: DomainDict,
-    ) -> List[EventType]:
-
-        clear_slots = ['department', 'full_name']
-        slots_data = domain.get("slots")
-
-        had_asked = check_last_event(tracker, "action_ask_who_for_contact", slots_data=slots_data)
-        if had_asked and self.flag:
-            dispatcher.utter_message(text="未能理解您的意思。")
-            dispatcher.utter_message(template="utter_anything_else")
-            self.flag = False
-        else:
-            dispatcher.utter_message(text="需要哪位老师或者哪个部门的联系方式呢？")
-            self.flag = True
-
-        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
-
-
-class ActionQueryContactInformation(Action):
-    """查询联系方式"""
-
-    def name(self) -> Text:
-        return "action_query_contact_information"
-
-    @staticmethod
-    def db() -> bool:
-        """模拟数据库"""
-
-        return True
-
-    def run(
-            self,
-            dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: DomainDict,
-    ) -> List[EventType]:
-
-        department = tracker.get_slot("department")
-        full_name = tracker.get_slot("full_name")
-        intent = tracker.latest_message["intent"].get("name")
-        clear_slots = ['department', 'full_name']
-        slots_data = domain.get("slots")
-
-        if '联系方式' in intent:
-
-            if department == '未知部门' and full_name == '未指定具体老师':
-                return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
-            else:
-
-                if department != '未知部门' and full_name != '未指定具体老师':
-                    dispatcher.utter_message(template="utter_search_contact_information1")
-                elif department == '未知部门' and full_name != '未指定具体老师':
-                    dispatcher.utter_message(template="utter_search_contact_information2")
-                else:
-                    dispatcher.utter_message(template="utter_search_contact_information3")
-
-                self.db()
-                dispatcher.utter_message(template="utter_search_failure")
-
-        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
-
-
 class ActionGreetUser(Action):
     """Greets the user with/without privacy policy"""
 
@@ -207,7 +132,7 @@ class ActionDefaultAskAffirmation(Action):
             domain: DomainDict,
     ) -> List[EventType]:
 
-        clear_slots = ['department', 'full_name']
+        clear_slots = ['department']
         slots_data = domain.get("slots")
 
         intent_ranking = tracker.latest_message.get("intent_ranking", [])
@@ -223,7 +148,8 @@ class ActionDefaultAskAffirmation(Action):
         first_intent_names = [
             intent.get("name", "")
             if intent.get("name", "") not in ["chitchat", '图书馆服务', '就业指导', '后勤服务', '教学教务',
-                                              '校园卡']
+                                              '校园卡', '校医院', '校园网服务', '研究生招生', '本科生招生',
+                                              '迎新服务', '常用联系方式']
             else tracker.latest_message.get("response_selector")
                 .get(intent.get("name", ""))
                 .get("ranking")[0]
@@ -258,7 +184,7 @@ class ActionDefaultAskAffirmation(Action):
                 else:
                     buttons.append({"title": button_title, "payload": button_title})
 
-            buttons.append({"title": "都不是", "payload": "都不是"})
+            buttons.append({"title": "都不是", "payload": "/out_of_scope"})
 
             dispatcher.utter_message(text=message_title, buttons=buttons)
         else:
@@ -354,7 +280,7 @@ class ActionTriggerResponseSelector(Action):
             tracker: Tracker,
             domain: Dict[Text, Any],
     ) -> List[EventType]:
-        clear_slots = ['department', 'full_name']
+        clear_slots = ['department']
         slots_data = domain.get("slots")
 
         main_intent = tracker.latest_message.get("intent").get("name")
@@ -443,7 +369,7 @@ class FindTheCorrespondingWEATHER(Action):
             domain: DomainDict,
     ) -> List[EventType]:
 
-        clear_slots = ['department', 'full_name', 'location']
+        clear_slots = ['department', 'location']
         slots_data = domain.get("slots")
 
         user_in = tracker.latest_message.get("text")

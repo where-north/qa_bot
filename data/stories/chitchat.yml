@@ -24,11 +24,4 @@ stories:
   - action: action_greet_user
   - intent: chitchat
   - action: utter_chitchat
-- story: greet填充full_name，清除
-  steps:
-  - intent: greet
-    entities:
-      - full_name: 李元琪
-  - slot_was_set:
-      - full_name: 李元琪
-  - action: action_greet_user
+
