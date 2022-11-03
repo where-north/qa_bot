@@ -56,7 +56,7 @@ responses:
   utter_contact_human:
   - text: 暂时还没有人工服务哦~
   utter_greet:
-  - text: 您好！请问有什么可以帮到您？?
+  - text: 您好！请问有什么可以帮到您？
   utter_anything_else:
   - text: 还有什么我可以帮你的吗？
   utter_bye:

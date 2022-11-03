@@ -67,9 +67,5 @@ rules:
       - intent: 查询天气
       - action: FindTheCorrespondingweather
 
-  - rule: anything else? - yes
-    steps:
-      - action: utter_anything_else
-      - intent: affirm
-      - action: utter_what_help
+
 

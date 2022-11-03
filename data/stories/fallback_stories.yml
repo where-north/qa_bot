@@ -1,7 +1,7 @@
 version: "2.0"
 stories:
 
-  - story: 存在相似意图; 用户选择相似意图; FAQ
+  - story: 存在相似意图; 用户选择相似意图/或重新具体提问; FAQ
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
@@ -19,6 +19,48 @@ stories:
           - intent: 常用联系方式
       - action: action_trigger_response_selector
 
+  - story: 存在相似意图; 用户选择/或回复 affirm
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: affirm
+      - action: utter_thumbsup
+
+  - story: 存在相似意图; 用户选择/或回复 bye
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: bye
+      - action: utter_bye
+
+  - story: 存在相似意图; 用户选择/或回复 canthelp
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: canthelp
+      - action: utter_canthelp
+
+  - story: 存在相似意图; 用户选择/或回复 human_handoff
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: human_handoff
+      - action: utter_contact_human
+
+  - story: 存在相似意图; 用户选择/或回复 thank
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: thank
+      - action: utter_noworries
+
+  - story: 存在相似意图; 用户回复 greet
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: greet
+      - action: utter_greet_noname
+
   - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问
     steps:
       - intent: nlu_fallback
@@ -34,6 +76,95 @@ stories:
       - action: utter_ask_rephrase
       - intent: nlu_fallback
       - action: action_default_fallback
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; FAQ
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+          - intent: out_of_scope
+      - action: action_trigger_response_selector
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; affirm
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: affirm
+      - action: utter_thumbsup
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; bye
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: bye
+      - action: utter_bye
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; canthelp
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: canthelp
+      - action: utter_canthelp
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; human_handoff
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: human_handoff
+      - action: utter_contact_human
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; thank
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: thank
+      - action: utter_noworries
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; greet
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: greet
+      - action: utter_greet_noname
 
   - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; FAQ
     steps:
@@ -82,10 +213,57 @@ stories:
       - intent: nlu_fallback
       - action: action_default_fallback
 
-  - story: 不存在相似意图; 请求用户重新提问; out_of_scope; action_trigger_response_selector
+  - story: 不存在相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; affirm
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
-      - intent: out_of_scope
-      - action: action_trigger_response_selector
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: affirm
+      - action: utter_thumbsup
+
+  - story: 不存在相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; bye
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: bye
+      - action: utter_bye
+
+  - story: 不存在相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; canthelp
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: canthelp
+      - action: utter_canthelp
+
+  - story: 不存在相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; human_handoff
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: human_handoff
+      - action: utter_contact_human
+
+  - story: 不存在相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; thank
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: thank
+      - action: utter_noworries
+
+  - story: 不存在相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback; greet
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_fallback
+      - intent: greet
+      - action: utter_greet_noname
 

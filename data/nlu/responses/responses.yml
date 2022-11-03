@@ -375,8 +375,7 @@ responses:
              [点击查看【2022-2023学年第二学期校历】](https://www1.szu.edu.cn/board/view.asp?id=482194)"
 
   utter_迎新服务/小巴定位:
-    - text: "小巴定位小程序：\n"
-      image: "https://mmbiz.qpic.cn/mmbiz_jpg/vxz3k5tJljcdu0OXy0dqwL1kTSeOCx7J9cQrWYtR6d83apYiasZQAv1BXlYO5I90pts9rKpYfpTHREqlc5Ssheg/640?wx_fmt=jpeg&wxfrom=5&wx_lazy=1&wx_co=1"
+    - text: "微信搜索 i深大 小程序，可实时查看小巴位置。"
 
   utter_迎新服务/校园地图:
     - text: "[点击查看深圳大学地图](https://mp.weixin.qq.com/s/RROflseTXez4ncGObHATjQ) \n
@@ -395,8 +394,22 @@ responses:
     - text: "http://ehall.szu.edu.cn/new/index.html"
 
   utter_迎新服务/上课时间表:
-    - text: "上课时间表: \n"
-      image: "https://mmbiz.qpic.cn/mmbiz_png/2emXOKkicJmfPqM4UxRXicgicdOxjX9ib87peQA26SNiagI50GiaPDNySbGYARKQOTrLhQjWOCuod5SrynkyAQBQ0SsQ/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1"
+    - text: "上课时间表: \n
+    第一节  8:30-9:10\n
+    第二节  9:15-9:55\n
+    大课间  20分钟\n
+    第三节  10:15-10:55\n
+    第四节  11:00-11:40\n
+    第五节  11:45-12:25\n
+    第六节  13:30-14:10\n
+    第七节  14:15-14:55\n
+    第八节  15:00-15:40\n
+    大课间  20分钟\n
+    第九节  16:00-16:40\n
+    第十节  16:45-17:25\n
+    第十一、十二节  19:00-20:20\n
+    第十三、十四节  20:30-21:45\n
+    注：从2020年9月开始实施"
 
   utter_迎新服务/体测标准:
     - text: "[点击查看【体质测试标准】](https://docs.qq.com/pdf/DRnB1UGhJSUJ6a2FQ?u=68508ed8b9b74a27ac6c2e40323a1b2b)"
@@ -416,14 +429,13 @@ responses:
   utter_校园网服务/网络故障:
     - text: "网络出现问题，可以先电话咨询运营商。学生区网络：电信86310108(粤海|沧海)、电信13392894832(丽湖)、移动18476328678／短号678678 \n
     如果仍无法解决，可以前往营业厅处理："
-      image: "https://mmbiz.qpic.cn/mmbiz_png/2emXOKkicJmeSiaaEudbVOhSJmTacwAd3icia6QmYgPfK5pmXaIWoy0k8RasR2R0patz5yc9bFa5j6VK8Gc60DO7SQ/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1"
 
   utter_校园网服务/其他:
     - text: "暂时不能回答该问题。"
 
   utter_常用联系方式/教学秘书联系方式:
     - text: "各学院（部）教学秘书联系方式：\n"
-      image: "https://mmbiz.qpic.cn/mmbiz_png/2emXOKkicJmfWf7pwlG3b8MP2AsbLDKaaVzXIk1dOYLdoGicJFVzriaIWrgsY8HsyxNP9MYuyVxkdKfUxhy203Psg/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1"
+      image: "https://www1.szu.edu.cn/board/uploadfiles/2022228678975.gif"
 
   utter_常用联系方式/校内常用电话:
     - text: "粤海派出所：0755-26555250 \n
@@ -439,8 +451,7 @@ responses:
              其他常用电话请跳转[此链接](https://mp.weixin.qq.com/s/R-29UwHuq16SxqCLdVEOSw)查看"
 
   utter_常用联系方式/教师联系方式:
-    - text: "点击进入[学生事务中心](http://swzx.szu.edu.cn/#/)，选择更多功能——教师联系方式查询，输入老师的姓名即可。"
-      image: "https://mmbiz.qpic.cn/mmbiz_png/zdpGWATyE5CO9VPLbHaLaSeKgx40ia0bpiaQIRXNO1xoObgiafiaCqiaicwXoZPXxDoDScaFXhSNQbahiabXgP93MGnmw/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1"
+    - text: "点击进入[学生事务中心](http://swzx.szu.edu.cn/#/)，选择更多功能——教师联系方式查询，输入老师的姓名即可查询。"
 
   utter_常用联系方式/其他:
     - text: "暂时不能回答该问题。"

@@ -158,6 +158,8 @@ class ActionDefaultAskAffirmation(Action):
         ]
         if "nlu_fallback" in first_intent_names:
             first_intent_names.remove("nlu_fallback")
+        if "greet" in first_intent_names:
+            first_intent_names.remove("greet")
         if "/out_of_scope" in first_intent_names:
             first_intent_names.remove("/out_of_scope")
         if "out_of_scope" in first_intent_names:
