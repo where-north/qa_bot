@@ -9,15 +9,12 @@ intents:
 - chitchat:
     use_entities: []
 - deny
-- explain
-- feedback
 - greet
 - human_handoff
 - nlu_fallback
 - out_of_scope
 - react_negative
 - react_positive
-- suggestion # 未有数据
 - thank
 - trigger_response_selector:
     use_entities: []
@@ -25,7 +22,6 @@ intents:
 - 就业指导
 - 后勤服务
 - 查询天气
-- 联系方式
 - 教学教务
 - 校园卡
 - 校医院
@@ -40,15 +36,6 @@ entities:
 
 slots:
   retrieval_intent:
-    type: any
-    influence_conversation: false
-  feedback_value:
-    type: categorical
-    influence_conversation: false
-    values:
-    - positive
-    - negative
-  suggestion:
     type: any
     influence_conversation: false
   shown_privacy:
@@ -72,17 +59,6 @@ responses:
   - text: 您好！请问有什么可以帮到您？?
   utter_anything_else:
   - text: 还有什么我可以帮你的吗？
-  utter_ask_feedback:
-  - buttons:
-    - payload: '/feedback{{"feedback_value": "positive"}}'
-      title: 👍
-    - payload: '/feedback{{"feedback_value": "negative"}}'
-      title: 👎
-    text: 你觉得本次对话体验如何？
-  utter_pos_feedback:
-  - text: 感谢您的反馈！
-  utter_neg_feedback:
-  - text: 很抱歉没能帮到您。如果您对我如何改进有任何建议，请告诉我。
   utter_bye:
   - text: 拜拜!
   - text: Bye!
@@ -126,16 +102,11 @@ responses:
   utter_ask_rephrase:
   - text: 我不太明白，你可以描述得更具体点吗？
 actions:
-#- action_query_weather # 免费
 - action_trigger_response_selector
 - action_default_ask_affirmation
 - action_default_fallback
 - action_greet_user
-- action_tag_feedback
+#- action_query_weather # 免费
 - FindTheCorrespondingweather # 可能要钱
-forms:
-  suggestion_form:
-    required_slots:
-      suggestion:
-      - type: from_text
+
 

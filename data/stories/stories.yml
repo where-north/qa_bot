@@ -5,12 +5,6 @@ stories:
   - intent: thank
   - action: utter_noworries
   - action: utter_anything_else
-#- story: bye and feedback
-#  steps:
-#  - intent: bye
-#  - action: utter_bye
-#  - action: utter_ask_feedback
-#  - action: action_tag_feedback
 
 - story: greet
   steps:

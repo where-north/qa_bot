@@ -184,7 +184,7 @@ class ActionDefaultAskAffirmation(Action):
                 else:
                     buttons.append({"title": button_title, "payload": button_title})
 
-            buttons.append({"title": "都不是", "payload": "/out_of_scope"})
+            buttons.append({"title": "都不是", "payload": "都不是"})
 
             dispatcher.utter_message(text=message_title, buttons=buttons)
         else:
@@ -224,15 +224,8 @@ class ActionDefaultFallback(Action):
             domain: DomainDict,
     ) -> List[EventType]:
 
-        # Fallback caused by TwoStageFallbackPolicy
-        last_intent = tracker.latest_message["intent"]["name"]
-        if last_intent in ["nlu_fallback", USER_INTENT_OUT_OF_SCOPE]:
-            return [SlotSet("feedback_value", "negative")]
-
-        # Fallback caused by Core
-        else:
-            dispatcher.utter_message(template="utter_canthelp")
-            return [UserUtteranceReverted()]
+        dispatcher.utter_message(template="utter_stilldontunderstand")
+        return [UserUtteranceReverted()]
 
 
 def check_last_event(tracker, event_type: Text, skip: int = 2, window: int = 3, slots_data=None) -> bool:
@@ -327,35 +320,6 @@ class ActionTriggerResponseSelector(Action):
             raise RuntimeError('没有找到意图对应的标准问题，请查看intent_description_mapping.csv文件！')
 
         return button_title
-
-
-class ActionTagFeedback(Action):
-    """Tag a conversation in Rasa X as positive or negative feedback """
-
-    def name(self):
-        return "action_tag_feedback"
-
-    def run(
-            self,
-            dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: DomainDict,
-    ) -> List[EventType]:
-
-        feedback = tracker.get_slot("feedback_value")
-        slots_data = domain.get("slots")
-
-        if feedback == "positive":
-            label = '[{"value":"postive feedback","color":"76af3d"}]'
-            dispatcher.utter_message(template='utter_pos_feedback')
-        elif feedback == "negative":
-            label = '[{"value":"negative feedback","color":"ff0000"}]'
-            dispatcher.utter_message(template='utter_neg_feedback')
-
-        # rasax = RasaXAPI()
-        # rasax.tag_convo(tracker, label)
-
-        return [SlotSet("feedback_value", slots_data.get("feedback_value")['initial_value'])]
 
 
 class FindTheCorrespondingWEATHER(Action):

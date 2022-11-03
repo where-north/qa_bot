@@ -202,20 +202,6 @@ nlu:
     - 不要
     - 不用
 
-- intent: explain
-  examples: |
-    - 你能详细说明一下吗
-    - 你能告诉我更多吗
-    - 给我解释
-    - 解释一下
-    - 我想要更多信息
-    - 请详细说明
-    - 请解释
-    - 给我更多细节
-    - 为什么
-    - 你是什么意思
-    - 怎么来的？
-
 - intent: greet
   examples: |
     - Good morning

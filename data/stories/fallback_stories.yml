@@ -1,20 +1,91 @@
 version: "2.0"
-#stories:
-#  - story: Story from Conversation ID 1894a680d1c44d5bb949a51481a4b70c
-#    steps:
-#      - intent: nlu_fallback
-#      - action: action_two_stage_fallback
-#      - active_loop: action_two_stage_fallback
-#      - intent: out_of_scope
-#      - active_loop: null
-#      - action: utter_stilldontunderstand
-#
-#  - story: Story from Conversation ID 1894a680d1c44d5bb949a51481a4b70c
-#    steps:
-#      - intent: nlu_fallback
-#      - action: action_two_stage_fallback
-#      - active_loop: action_two_stage_fallback
-#      - intent: deny
-#      - active_loop: null
-#      - action: utter_canthelp
+stories:
+
+  - story: 存在相似意图; 用户选择相似意图; FAQ
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - intent: nlu_fallback
+      - action: action_default_fallback
+
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; FAQ
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: deny
+      - action: utter_ask_rephrase
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+          - intent: out_of_scope
+      - action: action_trigger_response_selector
+
+  - story: 不存在相似意图; 请求用户重新提问; FAQ
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+          - intent: out_of_scope
+      - action: action_trigger_response_selector
+
+  - story: 不存在相似意图; 请求用户重新提问; nlu_fallback; action_default_fallback
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_fallback
+
+  - story: 不存在相似意图; 请求用户重新提问; out_of_scope; action_trigger_response_selector
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: out_of_scope
+      - action: action_trigger_response_selector
 
