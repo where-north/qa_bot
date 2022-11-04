@@ -225,7 +225,6 @@ class ActionDefaultFallback(Action):
             tracker: Tracker,
             domain: DomainDict,
     ) -> List[EventType]:
-
         dispatcher.utter_message(template="utter_stilldontunderstand")
         return [UserUtteranceReverted()]
 
@@ -285,6 +284,8 @@ class ActionTriggerResponseSelector(Action):
                 .get("response", {})
                 .get("intent_response_key")
         )
+        # 记录用户的输入
+        user_query = tracker.latest_message.get("text")
         if "其他" in full_intent:
             message_title = (
                 "您可能想问这些问题："
@@ -305,12 +306,14 @@ class ActionTriggerResponseSelector(Action):
                     intent = line['intent_response_key']
                     button_title = self.get_button_title(intent)
                     buttons.append({"title": button_title, "payload": button_title})
+                buttons.append({"title": "都不是", "payload": "都不是"})
 
                 dispatcher.utter_message(text=message_title, buttons=buttons)
         else:
             dispatcher.utter_message(template=f"utter_{full_intent}")
 
-        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
+        return [SlotSet('user_query', user_query)] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
+                                                      slot_name in clear_slots]
 
     def get_button_title(self, intent: Text) -> Text:
 
@@ -322,6 +325,63 @@ class ActionTriggerResponseSelector(Action):
             raise RuntimeError('没有找到意图对应的标准问题，请查看intent_description_mapping.csv文件！')
 
         return button_title
+
+
+class ActionCommunityQA(Action):
+    """Start the CommunityQA"""
+
+    def name(self) -> Text:
+        return "action_community_qa"
+
+    def run(
+            self,
+            dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any],
+    ) -> List[EventType]:
+        clear_slots = ['department']
+        slots_data = domain.get("slots")
+        user_query = tracker.get_slot('user_query')
+        print('cqa', user_query)
+        message_title = (
+            "为您在社区中找到这些问题："
+        )
+        # TODO search in CQA
+        search_result = [('cqa_query', 'cqa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+        buttons = []
+        for line in search_result:
+            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+        buttons.append({"title": "都不是", "payload": "都不是"})
+        dispatcher.utter_message(text=message_title, buttons=buttons)
+        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
+
+
+class ActionDocumentQA(Action):
+    """Start the DocumentQA"""
+
+    def name(self) -> Text:
+        return "action_document_qa"
+
+    def run(
+            self,
+            dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any],
+    ) -> List[EventType]:
+        clear_slots = ['department']
+        slots_data = domain.get("slots")
+        user_query = tracker.get_slot('user_query')
+        print('dqa', user_query)
+        message_title = (
+            "为您在公文通中找到这些文章："
+        )
+        # TODO search in DocumentQA
+        search_result = [('document_qa_passage', 'document_qa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+        buttons = []
+        for line in search_result:
+            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+        dispatcher.utter_message(text=message_title, buttons=buttons)
+        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
 class FindTheCorrespondingWEATHER(Action):

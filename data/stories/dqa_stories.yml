@@ -1,0 +1,224 @@
+version: "2.0"
+stories:
+
+  - story: FAQ; deny; CQA; deny; DQA
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+
+  - story: FAQ; deny; CQA; deny; DQA; affirm
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: affirm
+
+  - story: FAQ; deny; CQA; deny; DQA; bye
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: bye
+
+  - story: FAQ; deny; CQA; deny; DQA; canthelp
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: canthelp
+
+  - story: FAQ; deny; CQA; deny; DQA; human_handoff
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: human_handoff
+
+  - story: FAQ; deny; CQA; deny; DQA; out_of_scope
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: out_of_scope
+      - action: action_trigger_response_selector
+
+  - story: FAQ; deny; CQA; deny; DQA; react_negative
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: react_negative
+
+  - story: FAQ; deny; CQA; deny; DQA; react_positive
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: react_positive
+
+  - story: FAQ; deny; CQA; deny; DQA; thank
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - intent: thank
+
+  - story: FAQ; deny; CQA; deny; DQA; FAQ
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - intent: deny
+      - action: action_community_qa
+      - intent: deny
+      - action: action_document_qa
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 教学教务
+          - intent: 校园卡
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector

@@ -30,6 +30,8 @@ intents:
 - 研究生招生
 - 迎新服务
 - 常用联系方式
+- community_qa
+- document_qa
 entities:
 - department
 - location
@@ -48,6 +50,9 @@ slots:
   location:
     type: text
     initial_value: null
+    influence_conversation: false
+  user_query:
+    type: text
     influence_conversation: false
 
 responses:
@@ -106,6 +111,8 @@ actions:
 - action_default_ask_affirmation
 - action_default_fallback
 - action_greet_user
+- action_community_qa
+- action_document_qa
 #- action_query_weather # 免费
 - FindTheCorrespondingweather # 可能要钱
 
