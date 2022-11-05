@@ -147,8 +147,9 @@ class ActionDefaultAskAffirmation(Action):
 
         first_intent_names = [
             intent.get("name", "")
-            if intent.get("name", "") not in ["chitchat", '图书馆服务', '就业指导', '后勤服务', '教学教务',
-                                              '校园卡', '校医院', '校园网服务', '研究生招生', '本科生招生',
+            if intent.get("name", "") not in ["chitchat", '图书馆服务', '就业指导', '后勤服务', '宿舍服务',
+                                              '教学教务', '奖助学金', '补考缓考', '选课事宜', '专业修读',
+                                              '学生证件', '校医院', '校园网服务', '研究生招生', '本科生招生',
                                               '迎新服务', '常用联系方式']
             else tracker.latest_message.get("response_selector")
                 .get(intent.get("name", ""))

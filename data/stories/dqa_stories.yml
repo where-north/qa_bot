@@ -7,8 +7,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -27,8 +32,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -48,8 +58,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -69,8 +84,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -90,8 +110,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -111,8 +136,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -133,8 +163,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -154,8 +189,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -175,8 +215,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -196,8 +241,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生
@@ -213,8 +263,13 @@ stories:
           - intent: 图书馆服务
           - intent: 就业指导
           - intent: 后勤服务
+          - intent: 宿舍服务
           - intent: 教学教务
-          - intent: 校园卡
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
           - intent: 校医院
           - intent: 校园网服务
           - intent: 本科生招生

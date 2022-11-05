@@ -36,7 +36,22 @@ pipeline:
     retrieval_intent: 教学教务 # 只针对faq检索意图训练响应选择器模型
   - name: ResponseSelector
     epochs: 100
+    retrieval_intent: 奖助学金 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 补考缓考 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 选课事宜 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 专业修读 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
     retrieval_intent: 后勤服务 # 只针对faq检索意图训练响应选择器模型
+  - name: ResponseSelector
+    epochs: 100
+    retrieval_intent: 宿舍服务 # 只针对faq检索意图训练响应选择器模型
   - name: ResponseSelector
     epochs: 100
     retrieval_intent: 图书馆服务 # 只针对faq检索意图训练响应选择器模型
@@ -45,7 +60,7 @@ pipeline:
     retrieval_intent: 就业指导 # 只针对faq检索意图训练响应选择器模型
   - name: ResponseSelector
     epochs: 100
-    retrieval_intent: 校园卡 # 只针对faq检索意图训练响应选择器模型
+    retrieval_intent: 学生证件 # 只针对faq检索意图训练响应选择器模型
   - name: ResponseSelector
     epochs: 100
     retrieval_intent: 校医院 # 只针对faq检索意图训练响应选择器模型

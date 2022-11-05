@@ -11,6 +11,11 @@ stories:
   - intent: greet
   - action: action_greet_user
 
+- story: bye
+  steps:
+    - intent: bye
+    - action: utter_bye
+
 - story: neither options
   steps:
   - intent: greet

@@ -7,9 +7,34 @@ rules:
       - intent: 教学教务
       - action: action_trigger_response_selector
 
+  - rule: 奖助学金
+    steps:
+      - intent: 奖助学金
+      - action: action_trigger_response_selector
+
+  - rule: 补考缓考
+    steps:
+      - intent: 补考缓考
+      - action: action_trigger_response_selector
+
+  - rule: 选课事宜
+    steps:
+      - intent: 选课事宜
+      - action: action_trigger_response_selector
+
+  - rule: 专业修读
+    steps:
+      - intent: 专业修读
+      - action: action_trigger_response_selector
+
   - rule: 后勤服务
     steps:
       - intent: 后勤服务
+      - action: action_trigger_response_selector
+
+  - rule: 宿舍服务
+    steps:
+      - intent: 宿舍服务
       - action: action_trigger_response_selector
 
   - rule: 图书馆服务
@@ -22,9 +47,9 @@ rules:
       - intent: 就业指导
       - action: action_trigger_response_selector
 
-  - rule: 校园卡
+  - rule: 学生证件
     steps:
-      - intent: 校园卡
+      - intent: 学生证件
       - action: action_trigger_response_selector
 
   - rule: 校医院
