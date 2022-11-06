@@ -59,6 +59,14 @@ slots:
   user_query:
     type: text
     influence_conversation: false
+  CQA_has_started:
+    type: bool
+    initial_value: false
+    influence_conversation: true
+  DQA_has_started:
+    type: bool
+    initial_value: false
+    influence_conversation: true
 
 responses:
   utter_weather_exception:

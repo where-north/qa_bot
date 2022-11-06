@@ -26,6 +26,31 @@ stories:
       - intent: deny
       - action: action_document_qa
 
+  - story: FAQ; CQA_has_started; deny; DQA
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+
   - story: FAQ; deny; CQA; deny; DQA; affirm
     steps:
       - or:
@@ -51,6 +76,59 @@ stories:
       - intent: deny
       - action: action_document_qa
       - intent: affirm
+      - action: utter_thumbsup
+
+  - story: FAQ; CQA_has_started; deny; DQA; affirm
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: affirm
+      - action: utter_thumbsup
+
+  - story: FAQ; DQA_has_started; affirm
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: affirm
+      - action: utter_thumbsup
 
   - story: FAQ; deny; CQA; deny; DQA; bye
     steps:
@@ -77,6 +155,59 @@ stories:
       - intent: deny
       - action: action_document_qa
       - intent: bye
+      - action: utter_bye
+
+  - story: FAQ; CQA_has_started; deny; DQA; bye
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: bye
+      - action: utter_bye
+
+  - story: FAQ; DQA_has_started; bye
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: bye
+      - action: utter_bye
 
   - story: FAQ; deny; CQA; deny; DQA; canthelp
     steps:
@@ -103,6 +234,59 @@ stories:
       - intent: deny
       - action: action_document_qa
       - intent: canthelp
+      - action: utter_canthelp
+
+  - story: FAQ; CQA_has_started; deny; DQA; canthelp
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: canthelp
+      - action: utter_canthelp
+
+  - story: FAQ; DQA_has_started; canthelp
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: canthelp
+      - action: utter_canthelp
 
   - story: FAQ; deny; CQA; deny; DQA; human_handoff
     steps:
@@ -129,6 +313,59 @@ stories:
       - intent: deny
       - action: action_document_qa
       - intent: human_handoff
+      - action: utter_contact_human
+
+  - story: FAQ; CQA_has_started; deny; DQA; human_handoff
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: human_handoff
+      - action: utter_contact_human
+
+  - story: FAQ; DQA_has_started; human_handoff
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: human_handoff
+      - action: utter_contact_human
 
   - story: FAQ; deny; CQA; deny; DQA; out_of_scope
     steps:
@@ -157,6 +394,58 @@ stories:
       - intent: out_of_scope
       - action: action_trigger_response_selector
 
+  - story: FAQ; CQA_has_started; deny; DQA; out_of_scope
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: out_of_scope
+      - action: action_trigger_response_selector
+
+  - story: FAQ; DQA_has_started; out_of_scope
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: out_of_scope
+      - action: action_trigger_response_selector
+
   - story: FAQ; deny; CQA; deny; DQA; react_negative
     steps:
       - or:
@@ -182,6 +471,59 @@ stories:
       - intent: deny
       - action: action_document_qa
       - intent: react_negative
+      - action: utter_react_negative
+
+  - story: FAQ; CQA_has_started; deny; DQA; react_negative
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: react_negative
+      - action: utter_react_negative
+
+  - story: FAQ; DQA_has_started; react_negative
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: react_negative
+      - action: utter_react_negative
 
   - story: FAQ; deny; CQA; deny; DQA; react_positive
     steps:
@@ -208,6 +550,59 @@ stories:
       - intent: deny
       - action: action_document_qa
       - intent: react_positive
+      - action: utter_react_positive
+
+  - story: FAQ; CQA_has_started; deny; DQA; react_positive
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: react_positive
+      - action: utter_react_positive
+
+  - story: FAQ; DQA_has_started; react_positive
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: react_positive
+      - action: utter_react_positive
 
   - story: FAQ; deny; CQA; deny; DQA; thank
     steps:
@@ -234,6 +629,59 @@ stories:
       - intent: deny
       - action: action_document_qa
       - intent: thank
+      - action: utter_noworries
+
+  - story: FAQ; CQA_has_started; deny; DQA; thank
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - intent: thank
+      - action: utter_noworries
+
+  - story: FAQ; DQA_has_started; thank
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
+      - intent: thank
+      - action: utter_noworries
 
   - story: FAQ; deny; CQA; deny; DQA; FAQ
     steps:
@@ -259,6 +707,90 @@ stories:
       - action: action_community_qa
       - intent: deny
       - action: action_document_qa
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+
+  - story: FAQ; CQA_has_started; deny; DQA; FAQ
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - CQA_has_started: true
+      - intent: deny
+      - action: action_document_qa
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+
+  - story: FAQ; DQA_has_started;; FAQ
+    steps:
+      - or:
+          - intent: 图书馆服务
+          - intent: 就业指导
+          - intent: 后勤服务
+          - intent: 宿舍服务
+          - intent: 教学教务
+          - intent: 奖助学金
+          - intent: 专业修读
+          - intent: 补考缓考
+          - intent: 选课事宜
+          - intent: 学生证件
+          - intent: 校医院
+          - intent: 校园网服务
+          - intent: 本科生招生
+          - intent: 研究生招生
+          - intent: 迎新服务
+          - intent: 常用联系方式
+      - action: action_trigger_response_selector
+      - slot_was_set:
+          - DQA_has_started: true
       - or:
           - intent: 图书馆服务
           - intent: 就业指导

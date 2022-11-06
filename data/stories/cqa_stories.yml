@@ -47,6 +47,7 @@ stories:
       - intent: deny
       - action: action_community_qa
       - intent: affirm
+      - action: utter_thumbsup
 
   - story: FAQ; deny; CQA; bye
     steps:
@@ -71,6 +72,7 @@ stories:
       - intent: deny
       - action: action_community_qa
       - intent: bye
+      - action: utter_bye
 
   - story: FAQ; deny; CQA; canthelp
     steps:
@@ -95,6 +97,7 @@ stories:
       - intent: deny
       - action: action_community_qa
       - intent: canthelp
+      - action: utter_canthelp
 
   - story: FAQ; deny; CQA; human_handoff
     steps:
@@ -119,6 +122,7 @@ stories:
       - intent: deny
       - action: action_community_qa
       - intent: human_handoff
+      - action: utter_contact_human
 
   - story: FAQ; deny; CQA; out_of_scope
     steps:
@@ -168,6 +172,7 @@ stories:
       - intent: deny
       - action: action_community_qa
       - intent: react_negative
+      - action: utter_react_negative
 
   - story: FAQ; deny; CQA; react_positive
     steps:
@@ -192,6 +197,7 @@ stories:
       - intent: deny
       - action: action_community_qa
       - intent: react_positive
+      - action: utter_react_positive
 
   - story: FAQ; deny; CQA; thank
     steps:
@@ -216,6 +222,7 @@ stories:
       - intent: deny
       - action: action_community_qa
       - intent: thank
+      - action: utter_noworries
 
   - story: FAQ; deny; CQA; FAQ
     steps:

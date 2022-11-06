@@ -132,7 +132,7 @@ class ActionDefaultAskAffirmation(Action):
             domain: DomainDict,
     ) -> List[EventType]:
 
-        clear_slots = ['department']
+        clear_slots = ['department', 'CQA_has_started', 'DQA_has_started']
         slots_data = domain.get("slots")
 
         intent_ranking = tracker.latest_message.get("intent_ranking", [])
@@ -275,7 +275,7 @@ class ActionTriggerResponseSelector(Action):
             tracker: Tracker,
             domain: Dict[Text, Any],
     ) -> List[EventType]:
-        clear_slots = ['department']
+        clear_slots = ['department', 'CQA_has_started', 'DQA_has_started']
         slots_data = domain.get("slots")
 
         main_intent = tracker.latest_message.get("intent").get("name")
@@ -301,15 +301,48 @@ class ActionTriggerResponseSelector(Action):
 
                 other_sub_intents = tracker.latest_message.get("response_selector", {}).get(main_intent, {}).get(
                     "ranking")[1:]
+                second_sub_intent = other_sub_intents[0]
+                # 只有第二个子意图的置信度大于0.5时，才推荐FAQ
+                if second_sub_intent['confidence'] > 0.5:
+                    buttons = []
+                    for line in other_sub_intents[:5]:
+                        intent = line['intent_response_key']
+                        button_title = self.get_button_title(intent)
+                        buttons.append({"title": button_title, "payload": button_title})
+                    buttons.append({"title": "都不是", "payload": "都不是"})
 
-                buttons = []
-                for line in other_sub_intents[:5]:
-                    intent = line['intent_response_key']
-                    button_title = self.get_button_title(intent)
-                    buttons.append({"title": button_title, "payload": button_title})
-                buttons.append({"title": "都不是", "payload": "都不是"})
-
-                dispatcher.utter_message(text=message_title, buttons=buttons)
+                    dispatcher.utter_message(text=message_title, buttons=buttons)
+                # 否则，直接CQA
+                else:
+                    # TODO search in CQA
+                    search_result = [('cqa_query', 'cqa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+                    cqa_confidence = 101
+                    threshold = 100
+                    # 只有置信度大于阈值时，才推荐CQA
+                    if cqa_confidence > threshold:
+                        message_title = (
+                            "为您在社区中找到这些问题："
+                        )
+                        buttons = []
+                        for line in search_result:
+                            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+                        buttons.append({"title": "都不是", "payload": "都不是"})
+                        dispatcher.utter_message(text=message_title, buttons=buttons)
+                        return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
+                            SlotSet('department', slots_data.get('department')['initial_value'])]
+                    # 否则，直接DQA
+                    else:
+                        message_title = (
+                            "为您在公文通中找到这些文章："
+                        )
+                        # TODO search in DocumentQA
+                        search_result = [('document_qa_passage', 'document_qa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+                        buttons = []
+                        for line in search_result:
+                            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+                        dispatcher.utter_message(text=message_title, buttons=buttons)
+                        return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)] + [
+                            SlotSet('department', slots_data.get('department')['initial_value'])]
         else:
             dispatcher.utter_message(template=f"utter_{full_intent}")
 
@@ -343,17 +376,19 @@ class ActionCommunityQA(Action):
         clear_slots = ['department']
         slots_data = domain.get("slots")
         user_query = tracker.get_slot('user_query')
-        print('cqa', user_query)
-        message_title = (
-            "为您在社区中找到这些问题："
-        )
-        # TODO search in CQA
-        search_result = [('cqa_query', 'cqa_answer')] * 5  # ('cqa_qid', 'cqa_query')
-        buttons = []
-        for line in search_result:
-            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
-        buttons.append({"title": "都不是", "payload": "都不是"})
-        dispatcher.utter_message(text=message_title, buttons=buttons)
+        cqa_has_started = tracker.get_slot('CQA_has_started')
+        if not cqa_has_started:
+            print('cqa', user_query)
+            message_title = (
+                "为您在社区中找到这些问题："
+            )
+            # TODO search in CQA
+            search_result = [('cqa_query', 'cqa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+            buttons = []
+            for line in search_result:
+                buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+            buttons.append({"title": "都不是", "payload": "都不是"})
+            dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
@@ -372,16 +407,18 @@ class ActionDocumentQA(Action):
         clear_slots = ['department']
         slots_data = domain.get("slots")
         user_query = tracker.get_slot('user_query')
-        print('dqa', user_query)
-        message_title = (
-            "为您在公文通中找到这些文章："
-        )
-        # TODO search in DocumentQA
-        search_result = [('document_qa_passage', 'document_qa_answer')] * 5  # ('cqa_qid', 'cqa_query')
-        buttons = []
-        for line in search_result:
-            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
-        dispatcher.utter_message(text=message_title, buttons=buttons)
+        dqa_has_started = tracker.get_slot('DQA_has_started')
+        if not dqa_has_started:
+            print('dqa', user_query)
+            message_title = (
+                "为您在公文通中找到这些文章："
+            )
+            # TODO search in DocumentQA
+            search_result = [('document_qa_passage', 'document_qa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+            buttons = []
+            for line in search_result:
+                buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+            dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
@@ -396,7 +433,7 @@ class FindTheCorrespondingWEATHER(Action):
             domain: DomainDict,
     ) -> List[EventType]:
 
-        clear_slots = ['department', 'location']
+        clear_slots = ['department', 'location', 'CQA_has_started', 'DQA_has_started']
         slots_data = domain.get("slots")
 
         user_in = tracker.latest_message.get("text")
