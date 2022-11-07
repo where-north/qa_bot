@@ -20,6 +20,8 @@ import validators
 from actions.utils.coins import CoinDataManager
 from actions.utils.request import get
 from actions.utils.search import search_anime, AnimalImgSearch
+from actions.utils.cqa_es import ElasticSearchBM25 as CQA_ElasticSearchBM25
+from actions.utils.dqa_es import ElasticSearchBM25 as DQA_ElasticSearchBM25
 
 import logging
 import json
@@ -44,6 +46,11 @@ QUERY_KEY = "82510add8a7340caa9afcabfab78a639"
 
 CITY_LOOKUP_URL = "https://geoapi.qweather.com/v2/city/lookup"
 WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
+
+CQA_ES = CQA_ElasticSearchBM25(corpus_path='/media/cdrom1/chy/official_document_crawler/data/cqa_data1.csv',
+                               index_name='cqa', reindexing=False)
+
+DQA_ES = DQA_ElasticSearchBM25(index_name='dqa', reindexing=False)
 
 
 # class ActionQueryWeather(Action):
@@ -315,17 +322,22 @@ class ActionTriggerResponseSelector(Action):
                 # 否则，直接CQA
                 else:
                     # TODO search in CQA
-                    search_result = [('cqa_query', 'cqa_answer')] * 5  # ('cqa_qid', 'cqa_query')
-                    cqa_confidence = 101
-                    threshold = 100
+                    documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
+                    scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
+                    cqa_confidence = scores_ranked[0][1]
+                    print('cqa_confidence', cqa_confidence)
+                    # TODO set threshold
+                    threshold = 1
                     # 只有置信度大于阈值时，才推荐CQA
                     if cqa_confidence > threshold:
                         message_title = (
                             "为您在社区中找到这些问题："
                         )
                         buttons = []
-                        for line in search_result:
-                            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+                        for pid, _ in scores_ranked:
+                            document = documents_ranked[pid]
+                            title, content, answer = document.split('\t')
+                            buttons.append({"title": f'{content[:50]}', "payload": answer})
                         buttons.append({"title": "都不是", "payload": "都不是"})
                         dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
@@ -336,10 +348,16 @@ class ActionTriggerResponseSelector(Action):
                             "为您在公文通中找到这些文章："
                         )
                         # TODO search in DocumentQA
-                        search_result = [('document_qa_passage', 'document_qa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+                        documents_ranked, scores_ranked = DQA_ES.query(topk=5, query=user_query, return_scores=True)
+                        scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
+                        dqa_confidence = scores_ranked[0][1]
+                        print('dqa_confidence', dqa_confidence)
+
                         buttons = []
-                        for line in search_result:
-                            buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+                        for pid, _ in scores_ranked:
+                            document = documents_ranked[pid]
+                            title, content, src = document.split('\t')
+                            buttons.append({"title": f'[{title}]({src})', "payload": f'[{title}]({src})'})
                         dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)] + [
                             SlotSet('department', slots_data.get('department')['initial_value'])]
@@ -378,17 +396,25 @@ class ActionCommunityQA(Action):
         user_query = tracker.get_slot('user_query')
         cqa_has_started = tracker.get_slot('CQA_has_started')
         if not cqa_has_started:
-            print('cqa', user_query)
-            message_title = (
-                "为您在社区中找到这些问题："
-            )
             # TODO search in CQA
-            search_result = [('cqa_query', 'cqa_answer')] * 5  # ('cqa_qid', 'cqa_query')
-            buttons = []
-            for line in search_result:
-                buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
-            buttons.append({"title": "都不是", "payload": "都不是"})
-            dispatcher.utter_message(text=message_title, buttons=buttons)
+            documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
+            scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
+            cqa_confidence = scores_ranked[0][1]
+            print('cqa_confidence', cqa_confidence)
+            # TODO set threshold
+            threshold = 1
+            # 只有置信度大于阈值时，才推荐CQA
+            if cqa_confidence > threshold:
+                message_title = (
+                    "为您在社区中找到这些问题："
+                )
+                buttons = []
+                for pid, _ in scores_ranked:
+                    document = documents_ranked[pid]
+                    title, content, answer = document.split('\t')
+                    buttons.append({"title": f'{content[:50]}', "payload": answer})
+                buttons.append({"title": "都不是", "payload": "都不是"})
+                dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
@@ -414,10 +440,16 @@ class ActionDocumentQA(Action):
                 "为您在公文通中找到这些文章："
             )
             # TODO search in DocumentQA
-            search_result = [('document_qa_passage', 'document_qa_answer')] * 5  # ('cqa_qid', 'cqa_query')
+            documents_ranked, scores_ranked = DQA_ES.query(topk=5, query=user_query, return_scores=True)
+            scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
+            dqa_confidence = scores_ranked[0][1]
+            print('dqa_confidence', dqa_confidence)
+
             buttons = []
-            for line in search_result:
-                buttons.append({"title": f'{line[0]} + {line[1]}', "payload": line[0]})
+            for pid, _ in scores_ranked:
+                document = documents_ranked[pid]
+                title, content, src = document.split('\t')
+                buttons.append({"title": f'[{title}]({src})', "payload": f'[{title}]({src})'})
             dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
