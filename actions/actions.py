@@ -50,7 +50,7 @@ WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
 CQA_ES = CQA_ElasticSearchBM25(corpus_path='/media/cdrom1/chy/official_document_crawler/data/cqa_data1.csv',
                                index_name='cqa', reindexing=False)
 
-DQA_ES = DQA_ElasticSearchBM25(index_name='dqa', reindexing=False)
+DQA_ES = DQA_ElasticSearchBM25(index_name='dqa', reindexing=True)
 
 
 # class ActionQueryWeather(Action):
@@ -186,21 +186,22 @@ class ActionDefaultAskAffirmation(Action):
             buttons = []
             for intent in first_intent_names:
                 button_title = self.get_button_title(intent, entities)
+                text = "{'affirmation':{'query': '%s'}}" % button_title
                 if len(entities_json) > 2:
 
                     buttons.append(
-                        {"title": button_title, "payload": f"/{intent}{entities_json}"}
+                        {"title": text, "payload": f"/{intent}{entities_json}"}
                     )
                 else:
-                    buttons.append({"title": button_title, "payload": button_title})
+                    buttons.append({"title": text, "payload": button_title})
 
-            buttons.append({"title": "都不是", "payload": "都不是"})
+            buttons.append({"title": "{'affirmation':{'query': '都不是'}}", "payload": "都不是"})
 
             dispatcher.utter_message(text=message_title, buttons=buttons)
         else:
             message_title = (
-                "对不起，我不太理解您的意思"
-                " 🤔 您可以问得再具体一些吗？"
+                "<div class='msg-text'>对不起，我不太理解您的意思"
+                " 🤔 您可以问得再具体一些吗？</div>"
             )
             dispatcher.utter_message(text=message_title)
 
@@ -302,7 +303,8 @@ class ActionTriggerResponseSelector(Action):
                 button_title = ["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
                 buttons = []
                 for title in button_title:
-                    buttons.append({"title": title, "payload": title})
+                    text = "{'out_of_scope':{'query': '%s'}}" % title
+                    buttons.append({"title": text, "payload": title})
                 dispatcher.utter_message(text=message_title, buttons=buttons)
             else:
 
@@ -315,8 +317,10 @@ class ActionTriggerResponseSelector(Action):
                     for line in other_sub_intents[:5]:
                         intent = line['intent_response_key']
                         button_title = self.get_button_title(intent)
-                        buttons.append({"title": button_title, "payload": button_title})
-                    buttons.append({"title": "都不是", "payload": "都不是"})
+                        text = "{'faq':{'query': '%s'}}" % button_title
+                        buttons.append({"title": text, "payload": button_title})
+                    text = "{'faq':{'query': '%s'}}" % "都不是"
+                    buttons.append({"title": text, "payload": "都不是"})
 
                     dispatcher.utter_message(text=message_title, buttons=buttons)
                 # 否则，直接CQA
@@ -331,21 +335,23 @@ class ActionTriggerResponseSelector(Action):
                     # 只有置信度大于阈值时，才推荐CQA
                     if cqa_confidence > threshold:
                         message_title = (
-                            "为您在社区中找到这些问题："
+                            "为您在事务中心问答网站中找到这些相似问题："
                         )
                         buttons = []
                         for pid, _ in scores_ranked:
                             document = documents_ranked[pid]
-                            title, content, answer = document.split('\t')
-                            buttons.append({"title": f'{content[:50]}', "payload": answer})
-                        buttons.append({"title": "都不是", "payload": "都不是"})
+                            title, query, answer = document.split('\t')
+                            text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query[:50], answer)
+                            buttons.append({"title": text, "payload": ''})
+                        text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("都不是", "")
+                        buttons.append({"title": text, "payload": "都不是"})
                         dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
                             SlotSet('department', slots_data.get('department')['initial_value'])]
                     # 否则，直接DQA
                     else:
                         message_title = (
-                            "为您在公文通中找到这些文章："
+                            "为您在公文通中找到这些相关新闻："
                         )
                         # TODO search in DocumentQA
                         documents_ranked, scores_ranked = DQA_ES.query(topk=5, query=user_query, return_scores=True)
@@ -357,7 +363,8 @@ class ActionTriggerResponseSelector(Action):
                         for pid, _ in scores_ranked:
                             document = documents_ranked[pid]
                             title, content, src = document.split('\t')
-                            buttons.append({"title": f'[{title}]({src})', "payload": f'[{title}]({src})'})
+                            text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                            buttons.append({"title": text, "payload": ''})
                         dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)] + [
                             SlotSet('department', slots_data.get('department')['initial_value'])]
@@ -406,14 +413,16 @@ class ActionCommunityQA(Action):
             # 只有置信度大于阈值时，才推荐CQA
             if cqa_confidence > threshold:
                 message_title = (
-                    "为您在社区中找到这些问题："
+                    "为您在事务中心问答网站中找到这些相似问题："
                 )
                 buttons = []
                 for pid, _ in scores_ranked:
                     document = documents_ranked[pid]
-                    title, content, answer = document.split('\t')
-                    buttons.append({"title": f'{content[:50]}', "payload": answer})
-                buttons.append({"title": "都不是", "payload": "都不是"})
+                    title, query, answer = document.split('\t')
+                    text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query[:50], answer)
+                    buttons.append({"title": text, "payload": ''})
+                text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("都不是", "")
+                buttons.append({"title": text, "payload": "都不是"})
                 dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
@@ -437,7 +446,7 @@ class ActionDocumentQA(Action):
         if not dqa_has_started:
             print('dqa', user_query)
             message_title = (
-                "为您在公文通中找到这些文章："
+                "为您在公文通中找到这些相关新闻："
             )
             # TODO search in DocumentQA
             documents_ranked, scores_ranked = DQA_ES.query(topk=5, query=user_query, return_scores=True)
@@ -449,7 +458,8 @@ class ActionDocumentQA(Action):
             for pid, _ in scores_ranked:
                 document = documents_ranked[pid]
                 title, content, src = document.split('\t')
-                buttons.append({"title": f'[{title}]({src})', "payload": f'[{title}]({src})'})
+                text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                buttons.append({"title": text, "payload": ''})
             dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
@@ -502,20 +512,20 @@ class FindTheCorrespondingWEATHER(Action):
                 if data[i]['date'] == timesss:
                     index = ''.join([line['title'] + '：'
                                      + line['level'] + ' '
-                                     + line['desc'] + '\n' for line in data[i]['index']])
+                                     + line['desc'] + '<br>' for line in data[i]['index']])
                     text = location + '天气：' \
-                                      '\n' + data[i]['date'] + ' ' + data[i]['week'] + \
-                           '\n天气状况：' + data[i]['wea'] + \
-                           '\n体感温度：' + data[i]['tem'] + \
-                           '\n最高温度：' + data[i]['tem1'] + \
-                           '\n最低温度：' + data[i]['tem2'] + \
-                           '\n湿度：' + data[i]['humidity'] + \
-                           '\n风向：' + data[i]['win'][0] + data[i]['win'][1] + \
-                           '\n风力等级：' + data[i]['win_speed'] + \
-                           '\n空气质量：' + data[i]['air_level'] + \
-                           '\n温馨提示：' + data[i]['air_tips'] + '\n' + index
+                                      '<br>' + data[i]['date'] + ' ' + data[i]['week'] + \
+                           '<br>天气状况：' + data[i]['wea'] + \
+                           '<br>体感温度：' + data[i]['tem'] + \
+                           '<br>最高温度：' + data[i]['tem1'] + \
+                           '<br>最低温度：' + data[i]['tem2'] + \
+                           '<br>湿度：' + data[i]['humidity'] + \
+                           '<br>风向：' + data[i]['win'][0] + data[i]['win'][1] + \
+                           '<br>风力等级：' + data[i]['win_speed'] + \
+                           '<br>空气质量：' + data[i]['air_level'] + \
+                           '<br>温馨提示：' + data[i]['air_tips'] + '<br>' + index
 
-            dispatcher.utter_message(text=text)
+            dispatcher.utter_message(text="<div class='msg-text'>" + text + "</div>")
 
         except Exception as e:
             print('error', e)
