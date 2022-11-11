@@ -7,14 +7,13 @@ Desc:
 """
 import numpy as np
 from elasticsearch import Elasticsearch, helpers, NotFoundError
-import time
 import tqdm
 import requests
 from typing import List, Dict
 from loguru import logger
 import re
 import pymysql
-import pandas as pd
+import time
 
 # 打开数据库连接，注意passwd只接收str
 db = pymysql.connect(host="127.0.0.1", port=3306, user="root", passwd='123456', db="official_document", charset='utf8')
@@ -115,18 +114,20 @@ class ElasticSearchBM25(object):
                      'meeting',
                      'student_work',
                      'life', ]
-        dids, title, content, src = [], [], [], []
+        dids = []
         for database in databases:
             try:
-                sql = f"SELECT pid, title, content, src from {database}"
+                sql = f"SELECT pid, title, content, src, news_time from {database}"
                 cursor.execute(sql)
                 fetch_data = cursor.fetchall()
-                for p, t, c, s in fetch_data:
+                for p, t, c, s, n in fetch_data:
                     dids.append(database + '_' + str(p))
                     t = re.sub("\t", "", t)
                     c = re.sub("\t", "", c)
                     s = re.sub("\t", "", s)
-                    documents.append(t + '\t' + c + '\t' + s)
+                    n = re.sub("\t", "", str(n))
+                    # documents.append(t + '\t' + c + '\t' + s)
+                    documents.append(t + '\t' + s + '\t' + n)
             except Exception as e:
                 logger.error(e)
                 # 发生错误时回滚

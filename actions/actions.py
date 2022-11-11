@@ -34,6 +34,7 @@ from rasa_sdk.events import (
     EventType,
 )
 from actions.api import weather
+import time
 from datetime import datetime, date, timedelta
 
 USER_INTENT_OUT_OF_SCOPE = "out_of_scope"
@@ -173,6 +174,8 @@ class ActionDefaultAskAffirmation(Action):
         if "out_of_scope" in first_intent_names:
             first_intent_names.remove("out_of_scope")
 
+        user_query = tracker.latest_message.get("text")
+
         if len(first_intent_names) > 0:
             message_title = (
                 "对不起，我不太理解您的意思🤔，您是想说..."
@@ -193,9 +196,9 @@ class ActionDefaultAskAffirmation(Action):
                         {"title": text, "payload": f"/{intent}{entities_json}"}
                     )
                 else:
-                    buttons.append({"title": text, "payload": button_title})
+                    buttons.append({"title": text, "payload": f"/{intent}"})
 
-            buttons.append({"title": "{'affirmation':{'query': '都不是'}}", "payload": "都不是"})
+            buttons.append({"title": "{'affirmation':{'query': '都不是'}}", "payload": "/deny"})
 
             dispatcher.utter_message(text=message_title, buttons=buttons)
         else:
@@ -205,7 +208,8 @@ class ActionDefaultAskAffirmation(Action):
             )
             dispatcher.utter_message(text=message_title)
 
-        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
+        return [SlotSet('user_query', user_query)] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
+                                                      slot_name in clear_slots]
 
     def get_button_title(self, intent: Text, entities: Dict[Text, Text]) -> Text:
         default_utterance_query = self.intent_mappings.intent == intent
@@ -287,30 +291,51 @@ class ActionTriggerResponseSelector(Action):
         slots_data = domain.get("slots")
 
         main_intent = tracker.latest_message.get("intent").get("name")
-        full_intent = (
-            tracker.latest_message.get("response_selector", {})
-                .get(main_intent, {})
-                .get("response", {})
-                .get("intent_response_key")
-        )
+        # 如果接收的是“/XX/XX”类似的意图消息，直接utter_/XX/XX
+        if '/' in main_intent and '/其他' != main_intent[-3:]:
+            dispatcher.utter_message(response=f"utter_{main_intent}")
+            return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
+
+        catch_other_intent = False
+        if '其他' in main_intent:
+            catch_other_intent = True
+            full_intent = main_intent
+        else:
+            full_intent = (
+                tracker.latest_message.get("response_selector", {})
+                    .get(main_intent, {})
+                    .get("response", {})
+                    .get("intent_response_key")
+            )
+            if "其他" in full_intent:
+                catch_other_intent = True
         # 记录用户的输入
         user_query = tracker.latest_message.get("text")
-        if "其他" in full_intent:
+        if user_query[0] == '/':
+            user_query = tracker.get_slot('user_query')
+        if catch_other_intent:
             message_title = (
                 "您可能想问这些问题："
             )
             if "out_of_scope" in full_intent:
                 button_title = ["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
+                button_payloads = ["/chitchat/ask_whatspossible", "/chitchat/卖个萌", "/chitchat/ask_whoisit",
+                                   "/chitchat/鼓励", "/chitchat/讲个笑话"]
                 buttons = []
-                for title in button_title:
+                for title, payload in zip(button_title, button_payloads):
                     text = "{'out_of_scope':{'query': '%s'}}" % title
-                    buttons.append({"title": text, "payload": title})
+                    buttons.append({"title": text, "payload": payload})
                 dispatcher.utter_message(text=message_title, buttons=buttons)
             else:
-
-                other_sub_intents = tracker.latest_message.get("response_selector", {}).get(main_intent, {}).get(
-                    "ranking")[1:]
-                second_sub_intent = other_sub_intents[0]
+                second_sub_intent = {'confidence': 0}
+                other_sub_intents = []
+                try:
+                    other_sub_intents = tracker.latest_message.get("response_selector", {}).get(main_intent, {}).get(
+                        "ranking")[1:]
+                    second_sub_intent = other_sub_intents[0]
+                except Exception as e:
+                    logger.warning(e)
+                    logger.warning("can't get other sub intents such this intent come from fallback")
                 # 只有第二个子意图的置信度大于0.5时，才推荐FAQ
                 if second_sub_intent['confidence'] > 0.5:
                     buttons = []
@@ -318,9 +343,10 @@ class ActionTriggerResponseSelector(Action):
                         intent = line['intent_response_key']
                         button_title = self.get_button_title(intent)
                         text = "{'faq':{'query': '%s'}}" % button_title
-                        buttons.append({"title": text, "payload": button_title})
+                        print("faq intent", intent)
+                        buttons.append({"title": text, "payload": f"/{intent}"})
                     text = "{'faq':{'query': '%s'}}" % "都不是"
-                    buttons.append({"title": text, "payload": "都不是"})
+                    buttons.append({"title": text, "payload": "/deny"})
 
                     dispatcher.utter_message(text=message_title, buttons=buttons)
                 # 否则，直接CQA
@@ -329,6 +355,7 @@ class ActionTriggerResponseSelector(Action):
                     documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
                     scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
                     cqa_confidence = scores_ranked[0][1]
+                    print('cqa', user_query)
                     print('cqa_confidence', cqa_confidence)
                     # TODO set threshold
                     threshold = 1
@@ -341,10 +368,10 @@ class ActionTriggerResponseSelector(Action):
                         for pid, _ in scores_ranked:
                             document = documents_ranked[pid]
                             title, query, answer = document.split('\t')
-                            text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query[:50], answer)
+                            text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
                             buttons.append({"title": text, "payload": ''})
                         text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("都不是", "")
-                        buttons.append({"title": text, "payload": "都不是"})
+                        buttons.append({"title": text, "payload": "/deny"})
                         dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
                             SlotSet('department', slots_data.get('department')['initial_value'])]
@@ -357,12 +384,18 @@ class ActionTriggerResponseSelector(Action):
                         documents_ranked, scores_ranked = DQA_ES.query(topk=5, query=user_query, return_scores=True)
                         scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
                         dqa_confidence = scores_ranked[0][1]
+                        print('dqa', user_query)
                         print('dqa_confidence', dqa_confidence)
 
-                        buttons = []
+                        temp = []
                         for pid, _ in scores_ranked:
                             document = documents_ranked[pid]
-                            title, content, src = document.split('\t')
+                            title, src, new_time = document.split('\t')
+                            temp.append((title, src, new_time))
+                        temp = sorted(temp, key=lambda x: x[-1], reverse=True)
+
+                        buttons = []
+                        for title, src, new_time in temp:
                             text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
                             buttons.append({"title": text, "payload": ''})
                         dispatcher.utter_message(text=message_title, buttons=buttons)
@@ -403,6 +436,7 @@ class ActionCommunityQA(Action):
         user_query = tracker.get_slot('user_query')
         cqa_has_started = tracker.get_slot('CQA_has_started')
         if not cqa_has_started:
+            print('cqa', user_query)
             # TODO search in CQA
             documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
             scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
@@ -419,10 +453,10 @@ class ActionCommunityQA(Action):
                 for pid, _ in scores_ranked:
                     document = documents_ranked[pid]
                     title, query, answer = document.split('\t')
-                    text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query[:50], answer)
+                    text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
                     buttons.append({"title": text, "payload": ''})
                 text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("都不是", "")
-                buttons.append({"title": text, "payload": "都不是"})
+                buttons.append({"title": text, "payload": "/deny"})
                 dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
@@ -454,10 +488,15 @@ class ActionDocumentQA(Action):
             dqa_confidence = scores_ranked[0][1]
             print('dqa_confidence', dqa_confidence)
 
-            buttons = []
+            temp = []
             for pid, _ in scores_ranked:
                 document = documents_ranked[pid]
-                title, content, src = document.split('\t')
+                title, src, new_time = document.split('\t')
+                temp.append((title, src, new_time))
+            temp = sorted(temp, key=lambda x: x[-1], reverse=True)
+
+            buttons = []
+            for title, src, new_time in temp:
                 text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
                 buttons.append({"title": text, "payload": ''})
             dispatcher.utter_message(text=message_title, buttons=buttons)
