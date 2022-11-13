@@ -3,6 +3,7 @@ nlu:
 
 - intent: chitchat/ask_howdoing
   examples: |
+    - 最近怎么样？
     - 你好吗
     - 你过得好吗
     - 你还好吗？
@@ -18,7 +19,6 @@ nlu:
     - 今天过的怎么样？
     - 最近怎么样
     - 怎么样最近过得如何
-    - 最近怎么样？
     - 最近如何？
     - 你最近怎么样？
     - 进展如何
@@ -47,6 +47,7 @@ nlu:
 
 - intent: chitchat/ask_howold
   examples: |
+    - 你几岁了？
     - 你有没有和你年龄相仿的朋友，他们几岁了？
     - 你活了多久？
     - 你来地球上多久了？
@@ -122,6 +123,7 @@ nlu:
 
 - intent: chitchat/ask_ishuman
   examples: |
+    - 你是真人吗？
     - 嘿，你是人类吗
     - 你是人类吗
     - 你是人类
@@ -143,6 +145,7 @@ nlu:
 
 - intent: chitchat/ask_languagesbot
   examples: |
+    - 你懂什么语言？
     - 你是否熟悉不止一种语言？
     - 你能用其他语言交流吗？
     - 你会说一种以上的语言吗？
@@ -208,6 +211,7 @@ nlu:
 
 - intent: chitchat/ask_time
   examples: |
+    - 现在几点？
     - 能告诉我现在的时间吗？
     - 你能告诉我现在几点了吗？
     - 你能说出时间吗？
@@ -244,6 +248,7 @@ nlu:
 
 - intent: chitchat/ask_whatspossible
   examples: |
+    - 你能做什么？
     - 你能帮助我吗？
     - 你能告诉我你能做什么吗
     - 你还有什么可以做的吗？
@@ -319,6 +324,7 @@ nlu:
 
 - intent: chitchat/ask_wherefrom
   examples: |
+    - 你来自哪里？
     - 你是这附近的吗？
     - 你来自哪里？
     - 你知道你来自哪里吗？
@@ -359,6 +365,7 @@ nlu:
 
 - intent: chitchat/ask_whoami
   examples: |
+    - 我是谁？
     - 你能告诉我我是谁吗？
     - 你能告诉我我是谁吗？
     - 你知道我是谁吗？
@@ -371,6 +378,7 @@ nlu:
 
 - intent: chitchat/ask_whoisit
   examples: |
+    - 你是谁？
     - 你是谁
     - 你到底是谁？
     - 你是谁？
@@ -388,9 +396,9 @@ nlu:
 
 - intent: chitchat/卖个萌
   examples: |
+    - 你给我卖个萌吧
     - 卖个萌
     - 给我卖个萌
-    - 你给我卖个萌吧
     - 卖个萌？
     - 卖个萌啊
     - 你会卖萌吗

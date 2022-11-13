@@ -3,6 +3,7 @@ nlu:
 
 - intent: affirm
   examples: |
+    - 是的
     - OK
     - Ok
     - Ok.
@@ -74,6 +75,7 @@ nlu:
 
 - intent: react_positive
   examples: |
+    - 我很开心
     - :)
     - :D
     - 哈哈
@@ -103,6 +105,7 @@ nlu:
 
 - intent: bye
   examples: |
+    - 再见
     - Bye
     - Bye bye
     - bye
@@ -134,6 +137,7 @@ nlu:
 
 - intent: canthelp
   examples: |
+    - 你没有帮到我
     - 我想你帮不了我
     - 就这样？
     - 现在退出
@@ -155,6 +159,7 @@ nlu:
 
 - intent: deny
   examples: |
+    - 不是
     - NO
     - No
     - No.
@@ -204,6 +209,7 @@ nlu:
 
 - intent: greet
   examples: |
+    - 你好
     - Good morning
     - HELLO
     - HEY
@@ -242,13 +248,13 @@ nlu:
     - 我是陈生
     - 我是某某
     - 我是某
-    - 我是陈泓宇
     - 我是李元琪
     - 我是周琦
     - 我是阿不都沙拉木
 
 - intent: react_negative
   examples: |
+    - 我很失望
     - 我感觉不好
     - 我很伤心
     - 我超级难过
@@ -278,8 +284,8 @@ nlu:
 
 - intent: thank
   examples: |
-    - 万分谢意
     - 谢谢
+    - 万分谢意
     - 太感谢了
     - 谢谢！
     - 谢谢机器人

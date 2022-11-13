@@ -2,6 +2,7 @@ version: "2.0"
 nlu:
 - intent: 查询天气
   examples: |
+    - 今天天气咋样？
     - [成都](location)天气如何
     - [成都](location)的天气怎样
     - 帮我查一下[成都](location)的天气
@@ -50,6 +51,7 @@ nlu:
 
 - intent: human_handoff
   examples: |
+    - 转人工服务
     - 我可以和真正能帮助我的人说话吗？
     - 我不想和机器人说话
     - 我不喜欢和机器说话
