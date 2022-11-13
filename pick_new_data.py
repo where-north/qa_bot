@@ -7,25 +7,17 @@ Desc:
 """
 import json
 from collections import defaultdict
+import requests
 
-with open("results/intent_errors.json", "r") as f:
-    data = json.load(f)
+url = "http://localhost:5005/model/parse"
+data = {"text": "校园卡"}
+data = json.dumps(data, ensure_ascii=False)
+data = data.encode(encoding="utf-8")
+r = requests.post(url=url, data=data)
+res = json.loads(r.text)
 
-data_dict = defaultdict(list)
+print(res['text'])
+print(res['intent'])
+print(res['intent_ranking'])
+print(res['response_selector'])
 
-for i in data:
-    label = i['intent_prediction']['name']
-    confidence = i['intent_prediction']['confidence']
-    if confidence > 0.9:
-        data_dict[label].append('- ' + i['text'])
-    else:
-        data_dict['other'].append(i)
-for j in data_dict.keys():
-    if j == 'other':
-        f = open(f"results/{j}.json", "w")
-        json.dump(data_dict[j], f, ensure_ascii=False, indent=4)
-    else:
-        f = open(f"results/{j.replace('/', '_')}.txt", "w")
-        for k in data_dict[j]:
-            f.write(k)
-            f.write('\n')
