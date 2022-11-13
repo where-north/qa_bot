@@ -107,10 +107,13 @@ class ElasticSearchBM25(object):
         self.es.indices.create(index=index_name, body=es_index, ignore=[400])
         documents = []
         corpus = pd.read_csv(corpus_path, sep='\t')
-        for title, content, answer in zip(corpus.question_title, corpus.question_content, corpus.question_answer):
+        for title, content, answer, answer_t in zip(corpus.question_title, corpus.question_content,
+                                                    corpus.question_answer, corpus.answer_time):
             title = re.sub("\t", "", title)
             content = re.sub("\t", "", content)
             answer = re.sub("\t", "", answer)
+            answer_t = re.sub("\t", "", answer_t)
+            answer = answer + ' 回复时间：' + answer_t
             documents.append(title + '\t' + content + '\t' + answer)
         ndocuments = len(documents)
         dids = [str(i) for i in range(ndocuments)]

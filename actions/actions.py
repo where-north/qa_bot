@@ -49,7 +49,7 @@ CITY_LOOKUP_URL = "https://geoapi.qweather.com/v2/city/lookup"
 WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
 
 CQA_ES = CQA_ElasticSearchBM25(corpus_path='/media/cdrom1/chy/official_document_crawler/data/cqa_data1.csv',
-                               index_name='cqa', reindexing=False)
+                               index_name='cqa', reindexing=True)
 
 DQA_ES = DQA_ElasticSearchBM25(index_name='dqa', reindexing=True)
 
@@ -238,8 +238,11 @@ class ActionDefaultFallback(Action):
             tracker: Tracker,
             domain: DomainDict,
     ) -> List[EventType]:
+        clear_slots = ['user_query', 'department', 'location', 'CQA_has_started', 'DQA_has_started']
+        slots_data = domain.get("slots")
         dispatcher.utter_message(template="utter_stilldontunderstand")
-        return [UserUtteranceReverted()]
+        return [UserUtteranceReverted()] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
+                                            slot_name in clear_slots]
 
 
 def check_last_event(tracker, event_type: Text, skip: int = 2, window: int = 3, slots_data=None) -> bool:
