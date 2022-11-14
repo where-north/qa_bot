@@ -72,7 +72,7 @@ responses:
   utter_weather_exception:
   - text: <div class='msg-text'>非常抱歉，未查询到该城市的天气状况</div>
   utter_contact_human:
-  - text: <div class='msg-text'>暂时还没有人工服务哦~</div>
+  - text: <div class='msg-text'>需要转到人工服务吗？（暂时还没有人工服务）</div>
   utter_greet:
   - text: <div class='msg-text'>您好！请问有什么可以帮到您？</div>
   utter_anything_else:
