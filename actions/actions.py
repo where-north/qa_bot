@@ -48,7 +48,7 @@ QUERY_KEY = "82510add8a7340caa9afcabfab78a639"
 CITY_LOOKUP_URL = "https://geoapi.qweather.com/v2/city/lookup"
 WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
 
-CQA_ES = CQA_ElasticSearchBM25(corpus_path='/media/cdrom1/chy/official_document_crawler/data/cqa_data1.csv',
+CQA_ES = CQA_ElasticSearchBM25(corpus_path='../official_document_crawler/data/cqa_data1.csv',
                                index_name='cqa', reindexing=True)
 
 DQA_ES = DQA_ElasticSearchBM25(index_name='dqa', reindexing=True)
@@ -300,7 +300,7 @@ class ActionTriggerResponseSelector(Action):
             return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
         catch_other_intent = False
-        if '其他' in main_intent:
+        if '其他' in main_intent or 'nlu_fallback' == main_intent:  # 第二次nlu_fallback出现，会直接调用CQA
             catch_other_intent = True
             full_intent = main_intent
         else:
@@ -355,6 +355,10 @@ class ActionTriggerResponseSelector(Action):
                 # 否则，直接CQA
                 else:
                     # TODO search in CQA
+                    if not user_query:
+                        # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
+                        dispatcher.utter_message(template='utter_canthelp')
+                        return [SlotSet('department', slots_data.get('department')['initial_value'])]
                     documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
                     scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
                     cqa_confidence = scores_ranked[0][1]
@@ -380,6 +384,10 @@ class ActionTriggerResponseSelector(Action):
                             SlotSet('department', slots_data.get('department')['initial_value'])]
                     # 否则，直接DQA
                     else:
+                        if not user_query:
+                            # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
+                            dispatcher.utter_message(template='utter_canthelp')
+                            return [SlotSet('department', slots_data.get('department')['initial_value'])]
                         message_title = (
                             "为您在公文通中找到这些相关新闻："
                         )
@@ -437,6 +445,10 @@ class ActionCommunityQA(Action):
         clear_slots = ['department']
         slots_data = domain.get("slots")
         user_query = tracker.get_slot('user_query')
+        if not user_query:
+            # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
+            dispatcher.utter_message(template='utter_canthelp')
+            return [SlotSet('department', slots_data.get('department')['initial_value'])]
         cqa_has_started = tracker.get_slot('CQA_has_started')
         if not cqa_has_started:
             print('cqa', user_query)
@@ -479,6 +491,10 @@ class ActionDocumentQA(Action):
         clear_slots = ['department']
         slots_data = domain.get("slots")
         user_query = tracker.get_slot('user_query')
+        if not user_query:
+            # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
+            dispatcher.utter_message(template='utter_canthelp')
+            return [SlotSet('department', slots_data.get('department')['initial_value'])]
         dqa_has_started = tracker.get_slot('DQA_has_started')
         if not dqa_has_started:
             print('dqa', user_query)

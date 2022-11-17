@@ -15,6 +15,7 @@ from loguru import logger
 import re
 import json
 import pandas as pd
+from config import ES_DOCKER_IP
 
 
 class ElasticSearchBM25(object):
@@ -33,14 +34,14 @@ class ElasticSearchBM25(object):
             self._wait_and_check(host, port_http, max_waiting)
             logger.info(f"Successfully reached out to ES service at {host}:{port_http}")
         else:
-            host = "http://localhost"
+            host = f"http://{ES_DOCKER_IP}"
             if self._check_service_running(host, port_http):
                 logger.info(
                     f"Successfully reached out to ES service at {host}:{port_http}"
                 )
         es = Elasticsearch(
             [
-                {"host": "localhost", "port": port_http, "scheme": "http"},
+                {"host": f"{ES_DOCKER_IP}", "port": port_http, "scheme": "http"},
             ],
             timeout=timeout,
         )
@@ -201,5 +202,5 @@ class ElasticSearchBM25(object):
 
 if __name__ == '__main__':
     # index name不能大写！！！！
-    es = ElasticSearchBM25(corpus_path='/media/cdrom1/chy/official_document_crawler/data/cqa_data1.csv',
+    es = ElasticSearchBM25(corpus_path='../official_document_crawler/data/cqa_data1.csv',
                            index_name='cqa', reindexing=True)

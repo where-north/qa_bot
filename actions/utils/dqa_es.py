@@ -14,6 +14,7 @@ from loguru import logger
 import re
 import pymysql
 import time
+from config import ES_DOCKER_IP
 
 # 打开数据库连接，注意passwd只接收str
 db = pymysql.connect(host="127.0.0.1", port=3306, user="root", passwd='123456', db="official_document", charset='utf8')
@@ -36,14 +37,14 @@ class ElasticSearchBM25(object):
             self._wait_and_check(host, port_http, max_waiting)
             logger.info(f"Successfully reached out to ES service at {host}:{port_http}")
         else:
-            host = "http://localhost"
+            host = f"http://{ES_DOCKER_IP}"
             if self._check_service_running(host, port_http):
                 logger.info(
                     f"Successfully reached out to ES service at {host}:{port_http}"
                 )
         es = Elasticsearch(
             [
-                {"host": "localhost", "port": port_http, "scheme": "http"},
+                {"host": f"{ES_DOCKER_IP}", "port": port_http, "scheme": "http"},
             ],
             timeout=timeout,
         )
