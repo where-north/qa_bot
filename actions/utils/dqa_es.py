@@ -5,7 +5,9 @@ Contect : 1439187192@qq.com
 Time    : 2022/10/28 8:30
 Desc:
 """
-import numpy as np
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from elasticsearch import Elasticsearch, helpers, NotFoundError
 import tqdm
 import requests
