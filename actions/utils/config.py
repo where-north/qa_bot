@@ -8,3 +8,19 @@ Desc:
 
 # ES docker容器内部的IP
 ES_DOCKER_IP = "172.17.0.4"
+# 抽取式阅读器模型路径
+QA_MODEL_PATH = '../MODEL/luhua-chinese_pretrain_mrc_macbert_large'
+# intent对应的文字描述文件路径
+INTENT_DESCRIPTION_MAPPING_PATH = "actions/intent_description_mapping.csv"
+# 天气预报API相关配置
+QUERY_KEY = "82510add8a7340caa9afcabfab78a639"
+CITY_LOOKUP_URL = "https://geoapi.qweather.com/v2/city/lookup"
+WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
+# 域外意图文字描述
+USER_INTENT_OUT_OF_SCOPE = "out_of_scope"
+# CQA问答数据路径
+CQA_CORPUS_PATH = '../official_document_crawler/data/cqa_data1.csv'
+# CQA ES索引名称
+CQA_INDEX_NAME = 'cqa'
+# DQA ES索引名称
+DQA_INDEX_NAME = 'dqa'

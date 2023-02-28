@@ -34,24 +34,23 @@ from rasa_sdk.events import (
     EventType,
 )
 from actions.api import weather
-import time
+import math
 from datetime import datetime, date, timedelta
-
-USER_INTENT_OUT_OF_SCOPE = "out_of_scope"
+from .utils.config import *
+from transformers import BertForQuestionAnswering, BertTokenizer
+from .utils.document_qa_utils import predict
 
 logger = logging.getLogger(__name__)
 
-INTENT_DESCRIPTION_MAPPING_PATH = "actions/intent_description_mapping.csv"
+# 加载QA模型
+model = BertForQuestionAnswering.from_pretrained(QA_MODEL_PATH)
+model.cuda()
+tokenizer = BertTokenizer.from_pretrained(QA_MODEL_PATH, do_lower_case=True)
+logger.info('QA模型加载成功！')
 
-QUERY_KEY = "82510add8a7340caa9afcabfab78a639"
+CQA_ES = CQA_ElasticSearchBM25(corpus_path=CQA_CORPUS_PATH, index_name=CQA_INDEX_NAME, reindexing=True)
 
-CITY_LOOKUP_URL = "https://geoapi.qweather.com/v2/city/lookup"
-WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
-
-CQA_ES = CQA_ElasticSearchBM25(corpus_path='../official_document_crawler/data/cqa_data1.csv',
-                               index_name='cqa', reindexing=True)
-
-DQA_ES = DQA_ElasticSearchBM25(index_name='dqa', reindexing=True)
+DQA_ES = DQA_ElasticSearchBM25(index_name=DQA_INDEX_NAME, reindexing=True)
 
 
 # class ActionQueryWeather(Action):
@@ -365,11 +364,11 @@ class ActionTriggerResponseSelector(Action):
                     print('cqa', user_query)
                     print('cqa_confidence', cqa_confidence)
                     # TODO set threshold
-                    threshold = 1
+                    threshold = 10
                     # 只有置信度大于阈值时，才推荐CQA
                     if cqa_confidence > threshold:
                         message_title = (
-                            "为您在事务中心问答网站中找到这些相似问题："
+                            "为您找到这些相似问题："
                         )
                         buttons = []
                         for pid, _ in scores_ranked:
@@ -388,28 +387,66 @@ class ActionTriggerResponseSelector(Action):
                             # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
                             dispatcher.utter_message(template='utter_canthelp')
                             return [SlotSet('department', slots_data.get('department')['initial_value'])]
-                        message_title = (
-                            "为您在公文通中找到这些相关新闻："
-                        )
-                        # TODO search in DocumentQA
-                        documents_ranked, scores_ranked = DQA_ES.query(topk=5, query=user_query, return_scores=True)
-                        scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
-                        dqa_confidence = scores_ranked[0][1]
+                        dqa_has_started = tracker.get_slot('DQA_has_started')
                         print('dqa', user_query)
-                        print('dqa_confidence', dqa_confidence)
+                        # TODO search in DocumentQA
+                        documents_ranked, scores_ranked = DQA_ES.query(topk=10, query=user_query,
+                                                                       return_scores=True)
+                        scores_ranked = _compute_softmax(scores_ranked)
 
-                        temp = []
-                        for pid, _ in scores_ranked:
-                            document = documents_ranked[pid]
-                            title, src, new_time = document.split('\t')
-                            temp.append((title, src, new_time))
-                        temp = sorted(temp, key=lambda x: x[-1], reverse=True)
+                        input_datas = []
+                        pid_set = []
+                        for pid, _ in scores_ranked.items():
+                            if pid not in pid_set:
+                                pid_set.append(pid)
+                            item = documents_ranked[pid]
+                            document = item['document']
+                            input_data = {'title': '',
+                                          'document': document,
+                                          'document_id': pid,
+                                          'question': user_query}
+                            input_datas.append(input_data)
+
+                        print('input_datas', input_datas)
+
+                        results = predict(model, tokenizer, input_datas)
+                        print('results', results)
 
                         buttons = []
-                        for title, src, new_time in temp:
-                            text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
-                            buttons.append({"title": text, "payload": ''})
-                        dispatcher.utter_message(text=message_title, buttons=buttons)
+                        # 同一文档可能召回多个切片
+                        had_seen_pid = []
+                        for pid, ans_dict in results.items():
+                            ans, qa_score = ans_dict['text'], ans_dict['score']
+                            rank_score = scores_ranked[pid]
+                            if ans == 'no answer' or qa_score == 0 or rank_score == 0:
+                                continue
+                            if qa_score > 0.7:
+                                had_seen_pid.append(pid.split('seg')[0])
+                                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                                text = "{'dqa':{'ans': '%s', 'title': '%s', 'src': '%s'}}" % (ans, title, src)
+                                buttons.append({"title": text, "payload": ''})
+                                break
+                        if buttons:
+                            # 如果抽取出答案，给出答案以及来源，同时也呈现其他相关通知
+                            for pid in pid_set:
+                                if pid.split('seg')[0] not in had_seen_pid:
+                                    had_seen_pid.append(pid.split('seg')[0])
+                                    title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                                    text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                                    buttons.append({"title": text, "payload": ''})
+                            dispatcher.utter_message(text=' ', buttons=buttons)
+                        else:
+                            # 如果未抽取出答案，呈现相关通知
+                            message_title = (
+                                "为您在公文通中找到这些相关通知："
+                            )
+                            for pid in pid_set:
+                                if pid.split('seg')[0] not in had_seen_pid:
+                                    had_seen_pid.append(pid.split('seg')[0])
+                                    title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                                    text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                                    buttons.append({"title": text, "payload": ''})
+                            dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)] + [
                             SlotSet('department', slots_data.get('department')['initial_value'])]
         else:
@@ -462,7 +499,7 @@ class ActionCommunityQA(Action):
             # 只有置信度大于阈值时，才推荐CQA
             if cqa_confidence > threshold:
                 message_title = (
-                    "为您在事务中心问答网站中找到这些相似问题："
+                    "为您找到这些相似问题："
                 )
                 buttons = []
                 for pid, _ in scores_ranked:
@@ -496,28 +533,66 @@ class ActionDocumentQA(Action):
             dispatcher.utter_message(template='utter_canthelp')
             return [SlotSet('department', slots_data.get('department')['initial_value'])]
         dqa_has_started = tracker.get_slot('DQA_has_started')
-        if not dqa_has_started:
-            print('dqa', user_query)
-            message_title = (
-                "为您在公文通中找到这些相关新闻："
-            )
-            # TODO search in DocumentQA
-            documents_ranked, scores_ranked = DQA_ES.query(topk=5, query=user_query, return_scores=True)
-            scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
-            dqa_confidence = scores_ranked[0][1]
-            print('dqa_confidence', dqa_confidence)
 
-            temp = []
-            for pid, _ in scores_ranked:
-                document = documents_ranked[pid]
-                title, src, new_time = document.split('\t')
-                temp.append((title, src, new_time))
-            temp = sorted(temp, key=lambda x: x[-1], reverse=True)
+        print('dqa', user_query)
+        # TODO search in DocumentQA
+        documents_ranked, scores_ranked = DQA_ES.query(topk=10, query=user_query, return_scores=True)
+        scores_ranked = _compute_softmax(scores_ranked)
 
-            buttons = []
-            for title, src, new_time in temp:
-                text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+        input_datas = []
+        pid_set = []
+        for pid, _ in scores_ranked.items():
+            if pid not in pid_set:
+                pid_set.append(pid)
+            item = documents_ranked[pid]
+            document = item['document']
+            input_data = {'title': '',
+                          'document': document,
+                          'document_id': pid,
+                          'question': user_query}
+            input_datas.append(input_data)
+
+        print('input_datas', input_datas)
+
+        results = predict(model, tokenizer, input_datas)
+        print('results', results)
+
+        buttons = []
+        # 同一文档可能召回多个切片
+        had_seen_pid = []
+        for pid, ans_dict in results.items():
+            ans, qa_score = ans_dict['text'], ans_dict['score']
+            rank_score = scores_ranked[pid]
+            if ans == 'no answer' or qa_score == 0 or rank_score == 0:
+                continue
+            if qa_score > 0.7:
+                had_seen_pid.append(pid.split('seg')[0])
+                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                text = "{'dqa':{'ans': '%s', 'title': '%s', 'src': '%s'}}" % (ans, title, src)
                 buttons.append({"title": text, "payload": ''})
+                break
+        if buttons:
+            # 如果抽取出答案，给出答案以及来源，同时也呈现其他相关通知
+            for pid in pid_set:
+                if pid.split('seg')[0] not in had_seen_pid:
+                    had_seen_pid.append(pid.split('seg')[0])
+                    title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                    text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                    buttons.append({"title": text, "payload": ''})
+            dispatcher.utter_message(text=' ', buttons=buttons)
+        else:
+            # 如果未抽取出答案，呈现相关通知
+            message_title = (
+                "为您在公文通中找到这些相关通知："
+            )
+            # 同一文档可能召回多个切片，只保留一个
+            had_seen_pid = []
+            for pid in pid_set:
+                if pid.split('seg')[0] not in had_seen_pid:
+                    had_seen_pid.append(pid.split('seg')[0])
+                    title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                    text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                    buttons.append({"title": text, "payload": ''})
             dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
@@ -589,3 +664,25 @@ class FindTheCorrespondingWEATHER(Action):
             print('error', e)
             dispatcher.utter_message(template='utter_weather_exception')
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
+
+
+def _compute_softmax(scores):
+    qid = list(scores.keys())
+    scores = list(scores.values())
+
+    max_score = None
+    for score in scores:
+        if max_score is None or score > max_score:
+            max_score = score
+
+    exp_scores = []
+    total_sum = 0.0
+    for score in scores:
+        x = math.exp(score - max_score)
+        exp_scores.append(x)
+        total_sum += x
+
+    probs = []
+    for score in exp_scores:
+        probs.append(score / total_sum)
+    return {i: j for i, j in zip(qid, probs)}

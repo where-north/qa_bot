@@ -10,36 +10,21 @@ import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from elasticsearch import Elasticsearch, helpers, NotFoundError
+import time
 import tqdm
 import requests
 from typing import List, Dict
 from loguru import logger
 import re
-import pymysql
-import time
+import pandas as pd
 from config import ES_DOCKER_IP
-
-# 打开数据库连接，注意passwd只接收str
-db = pymysql.connect(host="127.0.0.1", port=3306, user="root", passwd='123456', db="official_document", charset='utf8')
-# 使用 cursor() 方法创建一个游标对象 cursor
-cursor = db.cursor()
-
-
-def splitting_documents(content):
-    n = len(content)
-    if len(content) < 512:
-        return [content]
-    content_list = []
-    start = 0
-    while start < n:
-        content_list.append(content[start: start + 512])
-        start += (512 - 128)
-    return content_list
+import glob
 
 
 class ElasticSearchBM25(object):
     def __init__(
             self,
+            corpus_path: str,
             index_name: str,
             reindexing: bool = True,
             port_http: int = 9200,
@@ -74,10 +59,10 @@ class ElasticSearchBM25(object):
                 )
                 es.indices.delete(index=index_name)
                 logger.info(f"delete index and now do indexing again")
-                self._index_corpus(index_name)
+                self._index_corpus(corpus_path, index_name)
         else:
             logger.info(f"No index found and now do indexing")
-            self._index_corpus(index_name)
+            self._index_corpus(corpus_path, index_name)
         self.index_name = index_name
         logger.info("All set up.")
 
@@ -96,6 +81,7 @@ class ElasticSearchBM25(object):
 
     def _wait_and_check(self, host, port, max_waiting):
         logger.info(
+
             f"Waiting for the ES service to be well started. Maximum time waiting: {max_waiting}s"
         )
         timeout = True
@@ -110,78 +96,43 @@ class ElasticSearchBM25(object):
                 + "(starting multiple ES instances from ES executable is not allowed)"
         )
 
-    def _index_corpus(self, index_name):
+    def _index_corpus(self, corpus_path, index_name):
         """
         Index the corpus.
+        :param corpus_path
         :param index_name: The name of the target ES index.
         """
         es_index = {
             "mappings": {
                 "properties": {
-                    "title": {"type": "text"},
                     "document": {"type": "text"},
-                    "src": {"type": "text"},
-                    "news_time": {"type": "text"},
                 }
             }
         }
         self.es.indices.create(index=index_name, body=es_index, ignore=[400])
-        title_list = []
-        document_list = []
-        src_list = []
-        news_time_list = []
-        databases = ['education',
-                     'research',
-                     'administration',
-                     'meeting',
-                     'student_work',
-                     'life', ]
-        dids = []
-        for database in databases:
-            try:
-                sql = f"SELECT pid, title, content, src, news_time from {database}"
-                cursor.execute(sql)
-                fetch_data = cursor.fetchall()
-                for p, t, c, s, n in fetch_data:
-                    t = re.sub("\t", "", t)
-                    c = re.sub("\t", "", c)
-                    s = re.sub("\t", "", s)
-                    n = re.sub("\t", "", str(n))
-                    # documents.append(t + '\t' + c + '\t' + s)
-                    c_list = splitting_documents(c)
-                    for idx, segment in enumerate(c_list):
-                        dids.append(database + '_' + str(p) + f'_seg_{idx}')
-                        title_list.append(t)
-                        document_list.append(t + segment)
-                        src_list.append(s)
-                        news_time_list.append(n)
-            except Exception as e:
-                logger.error(e)
-                # 发生错误时回滚
-                db.rollback()
-
-        ndocuments = len(document_list)
+        documents = []
+        corpus = pd.read_csv(corpus_path, sep='\t')
+        for _, content, _ in zip(corpus.title, corpus.text, corpus.id):
+            content = re.sub("\t", "", content)
+            documents.append(content)
+        documents = documents[:500000]
+        ndocuments = len(documents)
+        print("ndocuments: ", ndocuments)
+        dids = [str(i) for i in range(ndocuments)]
         chunk_size = 500
         pbar = tqdm.trange(0, ndocuments, chunk_size)
         for begin in pbar:
             did_chunk = dids[begin: begin + chunk_size]
-            title_chunk = title_list[begin: begin + chunk_size]
-            document_chunk = document_list[begin: begin + chunk_size]
-            src_chunk = src_list[begin: begin + chunk_size]
-            news_time_chunk = news_time_list[begin: begin + chunk_size]
+            document_chunk = documents[begin: begin + chunk_size]
             bulk_data = [
                 {
                     "_index": index_name,
                     "_id": did,
                     "_source": {
-                        "title": title,
                         "document": documnt,
-                        "src": src,
-                        "news_time": n_time
                     },
                 }
-                for did, title, documnt, src, n_time in
-                zip(did_chunk, title_chunk, document_chunk, src_chunk, news_time_chunk)
+                for did, documnt in zip(did_chunk, document_chunk)
             ]
             helpers.bulk(self.es, bulk_data)
         self.es.indices.refresh(
@@ -198,16 +149,14 @@ class ElasticSearchBM25(object):
         :return: Ranked documents, a mapping from IDs to the documents (and also the scores, a mapping from IDs to scores).
         """
         assert topk <= 10000, "`topk` is too large!"
+
         result = self.es.search(
             index=self.index_name,
             size=min(topk, 10000),
             body={"query": {"match": {"document": query}}},
         )
         hits = result["hits"]["hits"]
-        documents_ranked = {hit["_id"]: {"document": hit["_source"]["document"],
-                                         "title": hit["_source"]["title"],
-                                         "src": hit["_source"]["src"],
-                                         "news_time": hit["_source"]["news_time"]} for hit in hits}
+        documents_ranked = {hit["_id"]: hit["_source"]["document"] for hit in hits}
         if return_scores:
             scores_ranked = {hit["_id"]: hit["_score"] for hit in hits}
             return [documents_ranked, scores_ranked]
@@ -255,4 +204,46 @@ class ElasticSearchBM25(object):
 
 if __name__ == '__main__':
     # index name不能大写！！！！
-    es = ElasticSearchBM25(index_name='dqa', reindexing=True)
+    # corpus_paths = glob.glob("/media/cdrom1/chy/GC-DPR-main/data/dureader_data/cleaned_passages.tsv")
+    es = ElasticSearchBM25(corpus_path='/media/cdrom1/chy/GC-DPR-main/data/dureader_data/cleaned_passages0-0.tsv',
+                           index_name='test', reindexing=True)
+    import json
+
+
+    def parse_dureader_json_file(location):
+        with open(location) as ifile:
+            for line in ifile.readlines():
+                data = json.loads(line)
+                question = data['question']
+                question_id = data['question_id']
+                yield question, question_id
+
+
+    questions = []
+    for ds_item in parse_dureader_json_file(
+            "/media/cdrom1/chy/GC-DPR-main/data/dureader_data/dureader-retrieval-test2/test2.json"):
+        question, question_id = ds_item
+        questions.append(question)
+    time_cost = []
+
+    for q in tqdm.tqdm(questions[:1000]):
+        s = time.time()
+        documents_ranked, scores_ranked = es.query(topk=50, query=q, return_scores=True)
+        e = time.time()
+        time_cost.append(e - s)
+
+    import numpy as np
+
+    print(np.mean(time_cost))
+    # 1w 0.01051
+    # 5w 0.015609
+    # 10w 0.02048
+    # 50w 0.043381
+    # 100w 0.06586
+    # 200w 0.10584
+    # 300w 0.14292
+    # 400w 0.18409
+    # 500w 0.21329
+    # 600w 0.25279
+    # 700w 0.26985
+    # 800w 0.30391
