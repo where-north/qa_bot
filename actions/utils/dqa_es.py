@@ -136,6 +136,8 @@ class ElasticSearchBM25(object):
                      'meeting',
                      'student_work',
                      'life', ]
+        document_lens = []  # 记录文档长度
+        title_lens = []  # 记录标题长度
         dids = []
         for database in databases:
             try:
@@ -148,11 +150,14 @@ class ElasticSearchBM25(object):
                     s = re.sub("\t", "", s)
                     n = re.sub("\t", "", str(n))
                     # documents.append(t + '\t' + c + '\t' + s)
+                    if len(c) > 0:
+                        title_lens.append(len(t))
+                        document_lens.append(len(c))
                     c_list = splitting_documents(c)
                     for idx, segment in enumerate(c_list):
                         dids.append(database + '_' + str(p) + f'_seg_{idx}')
                         title_list.append(t)
-                        document_list.append(t + segment)
+                        document_list.append(t + ' ' + segment)
                         src_list.append(s)
                         news_time_list.append(n)
             except Exception as e:
@@ -160,7 +165,13 @@ class ElasticSearchBM25(object):
                 # 发生错误时回滚
                 db.rollback()
 
-        ndocuments = len(document_list)
+        logger.info(
+            f'标题最大长度: {max(title_lens)} '
+            f'标题最小长度: {min(title_lens)} 标题平均长度: {sum(title_lens) / len(title_lens):.2f}')
+        logger.info(
+            f'文档个数: {len(document_lens)} 文档最大长度: {max(document_lens)} '
+            f'文档最小长度: {min(document_lens)} 文档平均长度: {sum(document_lens) / len(document_lens):.2f}')
+        ndocuments = len(document_list)  # 切片个数
         chunk_size = 500
         pbar = tqdm.trange(0, ndocuments, chunk_size)
         for begin in pbar:

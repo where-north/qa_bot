@@ -7,8 +7,7 @@
 
 # This is a simple example for a custom action which utters "Hello World!"
 
-import mimetypes
-import random
+from collections import OrderedDict
 from typing import Any, Dict, List, Text, Optional
 
 from rasa_sdk import Action, Tracker, FormValidationAction
@@ -177,7 +176,7 @@ class ActionDefaultAskAffirmation(Action):
 
         if len(first_intent_names) > 0:
             message_title = (
-                "对不起，我不太理解您的意思🤔，您是想说..."
+                "对不起，我不太理解您的意思🤔，您是想问..."
             )
 
             entities = tracker.latest_message.get("entities", [])
@@ -197,7 +196,7 @@ class ActionDefaultAskAffirmation(Action):
                 else:
                     buttons.append({"title": text, "payload": f"/{intent}"})
 
-            buttons.append({"title": "{'affirmation':{'query': '都不是'}}", "payload": "/deny"})
+            buttons.append({"title": "{'affirmation':{'query': '以上都不是'}}", "payload": "/deny"})
 
             dispatcher.utter_message(text=message_title, buttons=buttons)
         else:
@@ -338,8 +337,8 @@ class ActionTriggerResponseSelector(Action):
                 except Exception as e:
                     logger.warning(e)
                     logger.warning("can't get other sub intents such this intent come from fallback")
-                # 只有第二个子意图的置信度大于0.5时，才推荐FAQ
-                if second_sub_intent['confidence'] > 0.5:
+                # 只有第二个子意图的置信度大于0.8时，才推荐FAQ
+                if second_sub_intent['confidence'] > 0.8:
                     buttons = []
                     for line in other_sub_intents[:5]:
                         intent = line['intent_response_key']
@@ -347,7 +346,7 @@ class ActionTriggerResponseSelector(Action):
                         text = "{'faq':{'query': '%s'}}" % button_title
                         print("faq intent", intent)
                         buttons.append({"title": text, "payload": f"/{intent}"})
-                    text = "{'faq':{'query': '%s'}}" % "都不是"
+                    text = "{'faq':{'query': '%s'}}" % "以上都不是"
                     buttons.append({"title": text, "payload": "/deny"})
 
                     dispatcher.utter_message(text=message_title, buttons=buttons)
@@ -376,7 +375,7 @@ class ActionTriggerResponseSelector(Action):
                             title, query, answer = document.split('\t')
                             text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
                             buttons.append({"title": text, "payload": ''})
-                        text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("都不是", "")
+                        text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("以上都不是", "")
                         buttons.append({"title": text, "payload": "/deny"})
                         dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
@@ -415,7 +414,8 @@ class ActionTriggerResponseSelector(Action):
                         buttons = []
                         # 同一文档可能召回多个切片
                         had_seen_pid = []
-                        for pid, ans_dict in results.items():
+                        for pid in scores_ranked.keys():
+                            ans_dict = results[pid]
                             ans, qa_score = ans_dict['text'], ans_dict['score']
                             rank_score = scores_ranked[pid]
                             if ans == 'no answer' or qa_score == 0 or rank_score == 0:
@@ -495,7 +495,7 @@ class ActionCommunityQA(Action):
             cqa_confidence = scores_ranked[0][1]
             print('cqa_confidence', cqa_confidence)
             # TODO set threshold
-            threshold = 1
+            threshold = 10
             # 只有置信度大于阈值时，才推荐CQA
             if cqa_confidence > threshold:
                 message_title = (
@@ -507,7 +507,7 @@ class ActionCommunityQA(Action):
                     title, query, answer = document.split('\t')
                     text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
                     buttons.append({"title": text, "payload": ''})
-                text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("都不是", "")
+                text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("以上都不是", "")
                 buttons.append({"title": text, "payload": "/deny"})
                 dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
@@ -560,7 +560,8 @@ class ActionDocumentQA(Action):
         buttons = []
         # 同一文档可能召回多个切片
         had_seen_pid = []
-        for pid, ans_dict in results.items():
+        for pid in scores_ranked.keys():
+            ans_dict = results[pid]
             ans, qa_score = ans_dict['text'], ans_dict['score']
             rank_score = scores_ranked[pid]
             if ans == 'no answer' or qa_score == 0 or rank_score == 0:
@@ -685,4 +686,4 @@ def _compute_softmax(scores):
     probs = []
     for score in exp_scores:
         probs.append(score / total_sum)
-    return {i: j for i, j in zip(qid, probs)}
+    return OrderedDict({i: j for i, j in zip(qid, probs)})

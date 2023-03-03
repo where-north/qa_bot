@@ -7,6 +7,7 @@ Desc:
 """
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from elasticsearch import Elasticsearch, helpers, NotFoundError
 import time
@@ -108,6 +109,7 @@ class ElasticSearchBM25(object):
         }
         self.es.indices.create(index=index_name, body=es_index, ignore=[400])
         documents = []
+        content_lens = []  # 记录问题长度
         corpus = pd.read_csv(corpus_path, sep='\t')
         for title, content, answer, answer_t in zip(corpus.question_title, corpus.question_content,
                                                     corpus.question_answer, corpus.answer_time):
@@ -116,7 +118,11 @@ class ElasticSearchBM25(object):
             answer = re.sub("\t", "", answer)
             answer_t = re.sub("\t", "", answer_t)
             answer = answer + ' 回复时间：' + answer_t
+            content_lens.append(len(content))
             documents.append(title + '\t' + content + '\t' + answer)
+        logger.info(
+            f'问题最大长度: {max(content_lens)} '
+            f'问题最小长度: {min(content_lens)} 问题平均长度: {sum(content_lens) / len(content_lens):.2f}')
         ndocuments = len(documents)
         dids = [str(i) for i in range(ndocuments)]
         chunk_size = 500
