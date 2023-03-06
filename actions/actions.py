@@ -8,33 +8,27 @@
 # This is a simple example for a custom action which utters "Hello World!"
 
 from collections import OrderedDict
-from typing import Any, Dict, List, Text, Optional
+from typing import Any, Dict, List, Text
 
-from rasa_sdk import Action, Tracker, FormValidationAction
+from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 
 import cpca  # cpca是chinese_province_city_area_mapper的简称，可用于处理中文地址
-import validators
 
-from actions.utils.coins import CoinDataManager
-from actions.utils.request import get
-from actions.utils.search import search_anime, AnimalImgSearch
 from actions.utils.cqa_es import ElasticSearchBM25 as CQA_ElasticSearchBM25
 from actions.utils.dqa_es import ElasticSearchBM25 as DQA_ElasticSearchBM25
 
 import logging
 import json
 from rasa_sdk.types import DomainDict
-from rasa_sdk.forms import FormValidationAction
 from rasa_sdk.events import (
     SlotSet,
     UserUtteranceReverted,
-    ConversationPaused,
     EventType,
 )
 from actions.api import weather
 import math
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from .utils.config import *
 from transformers import BertForQuestionAnswering, BertTokenizer
 from .utils.document_qa_utils import predict
@@ -44,6 +38,7 @@ logger = logging.getLogger(__name__)
 # 加载QA模型
 model = BertForQuestionAnswering.from_pretrained(QA_MODEL_PATH)
 model.cuda()
+model.eval()
 tokenizer = BertTokenizer.from_pretrained(QA_MODEL_PATH, do_lower_case=True)
 logger.info('QA模型加载成功！')
 
@@ -360,8 +355,8 @@ class ActionTriggerResponseSelector(Action):
                     documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
                     scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
                     cqa_confidence = scores_ranked[0][1]
-                    print('cqa', user_query)
-                    print('cqa_confidence', cqa_confidence)
+                    # print('cqa', user_query)
+                    # print('cqa_confidence', cqa_confidence)
                     # TODO set threshold
                     threshold = 10
                     # 只有置信度大于阈值时，才推荐CQA
@@ -387,7 +382,7 @@ class ActionTriggerResponseSelector(Action):
                             dispatcher.utter_message(template='utter_canthelp')
                             return [SlotSet('department', slots_data.get('department')['initial_value'])]
                         dqa_has_started = tracker.get_slot('DQA_has_started')
-                        print('dqa', user_query)
+                        # print('dqa', user_query)
                         # TODO search in DocumentQA
                         documents_ranked, scores_ranked = DQA_ES.query(topk=10, query=user_query,
                                                                        return_scores=True)
@@ -406,10 +401,10 @@ class ActionTriggerResponseSelector(Action):
                                           'question': user_query}
                             input_datas.append(input_data)
 
-                        print('input_datas', input_datas)
+                        # print('input_datas', input_datas)
 
                         results = predict(model, tokenizer, input_datas)
-                        print('results', results)
+                        # print('results', results)
 
                         buttons = []
                         # 同一文档可能召回多个切片
@@ -488,12 +483,12 @@ class ActionCommunityQA(Action):
             return [SlotSet('department', slots_data.get('department')['initial_value'])]
         cqa_has_started = tracker.get_slot('CQA_has_started')
         if not cqa_has_started:
-            print('cqa', user_query)
+            # print('cqa', user_query)
             # TODO search in CQA
             documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
             scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
             cqa_confidence = scores_ranked[0][1]
-            print('cqa_confidence', cqa_confidence)
+            # print('cqa_confidence', cqa_confidence)
             # TODO set threshold
             threshold = 10
             # 只有置信度大于阈值时，才推荐CQA
@@ -534,7 +529,7 @@ class ActionDocumentQA(Action):
             return [SlotSet('department', slots_data.get('department')['initial_value'])]
         dqa_has_started = tracker.get_slot('DQA_has_started')
 
-        print('dqa', user_query)
+        # print('dqa', user_query)
         # TODO search in DocumentQA
         documents_ranked, scores_ranked = DQA_ES.query(topk=10, query=user_query, return_scores=True)
         scores_ranked = _compute_softmax(scores_ranked)
@@ -552,10 +547,10 @@ class ActionDocumentQA(Action):
                           'question': user_query}
             input_datas.append(input_data)
 
-        print('input_datas', input_datas)
+        # print('input_datas', input_datas)
 
         results = predict(model, tokenizer, input_datas)
-        print('results', results)
+        # print('results', results)
 
         buttons = []
         # 同一文档可能召回多个切片
