@@ -31,7 +31,8 @@ import math
 from datetime import date, timedelta
 from .utils.config import *
 from transformers import BertForQuestionAnswering, BertTokenizer
-from .utils.document_qa_utils import predict
+# from .utils.document_qa_utils import predict
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -403,7 +404,8 @@ class ActionTriggerResponseSelector(Action):
 
                         # print('input_datas', input_datas)
 
-                        results = predict(model, tokenizer, input_datas)
+                        # results = predict(model, tokenizer, input_datas)
+                        results = requests.post(QA_URL, json=input_datas).json()['predict']
                         # print('results', results)
 
                         buttons = []
@@ -549,7 +551,8 @@ class ActionDocumentQA(Action):
 
         # print('input_datas', input_datas)
 
-        results = predict(model, tokenizer, input_datas)
+        # results = predict(model, tokenizer, input_datas)
+        results = requests.post(QA_URL, json=input_datas).json()['predict']
         # print('results', results)
 
         buttons = []

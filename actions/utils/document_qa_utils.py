@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 import timeit
 import collections
 import math
+from pydantic import BaseModel
 
 
 def to_list(tensor):
@@ -263,22 +264,40 @@ def create_examples(input_datas):
                   'question': ''}, ...]
     """
     examples = []
-    for input_data in input_datas:
-        title = input_data["title"] if 'title' in input_data else ''
-        if title != '':
-            context_text = title + input_data["document"]
-        else:
-            context_text = input_data["document"]
+    if isinstance(input_datas[0], BaseModel):
+        for input_data in input_datas:
+            title = input_data.title
+            if title != '':
+                context_text = title + input_data.document
+            else:
+                context_text = input_data.document
 
-        question_text = input_data["question"]
-        document_id = input_data["document_id"]
+            question_text = input_data.question
+            document_id = input_data.document_id
 
-        example = SquadExample(
-            document_id=document_id,
-            question_text=question_text,
-            context_text=context_text,
-        )
-        examples.append(example)
+            example = SquadExample(
+                document_id=document_id,
+                question_text=question_text,
+                context_text=context_text,
+            )
+            examples.append(example)
+    else:
+        for input_data in input_datas:
+            title = input_data["title"] if 'title' in input_data else ''
+            if title != '':
+                context_text = title + input_data["document"]
+            else:
+                context_text = input_data["document"]
+
+            question_text = input_data["question"]
+            document_id = input_data["document_id"]
+
+            example = SquadExample(
+                document_id=document_id,
+                question_text=question_text,
+                context_text=context_text,
+            )
+            examples.append(example)
 
     return examples
 
@@ -448,6 +467,43 @@ def squad_convert_examples_to_features_orig(examples, tokenizer, max_seq_length,
     return features, dataset
 
 
+def squad_convert_examples_to_features_orig_onnx(examples, tokenizer, max_seq_length, max_query_length):
+    """
+    onnx 推理用
+    """
+
+    features = []
+    # 将tokenizer变量全局化
+    squad_convert_example_to_features_init(tokenizer)
+    for example in tqdm(examples, ncols=150):
+        example_features = squad_convert_example_to_features_orig(example, max_seq_length, max_query_length)
+        features.append(example_features)
+
+    new_features = []
+    unique_id = 1000000000
+    example_index = 0
+    for example_features in features:
+        if not example_features:
+            continue
+        for example_feature in example_features:
+            example_feature.example_index = example_index
+            example_feature.unique_id = unique_id
+            new_features.append(example_feature)
+            unique_id += 1
+        example_index += 1
+    features = new_features
+    del new_features
+
+    # Convert to Tensors and build dataset
+    all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+    all_attention_masks = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
+    all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
+
+    all_example_index = torch.arange(all_input_ids.size(0), dtype=torch.long)
+
+    return features, all_input_ids, all_attention_masks, all_token_type_ids, all_example_index
+
+
 def load_examples(tokenizer, input_datas, max_seq_length=512, max_query_length=64):
     examples = create_examples(input_datas)
 
@@ -459,6 +515,20 @@ def load_examples(tokenizer, input_datas, max_seq_length=512, max_query_length=6
     )
 
     return dataset, examples, features
+
+
+def load_examples_onnx(tokenizer, input_datas, max_seq_length=512, max_query_length=64):
+    examples = create_examples(input_datas)
+
+    features, all_input_ids, all_attention_masks, all_token_type_ids, all_example_index = \
+        squad_convert_examples_to_features_orig_onnx(
+            examples=examples,
+            tokenizer=tokenizer,
+            max_seq_length=max_seq_length,
+            max_query_length=max_query_length
+        )
+
+    return all_input_ids, all_attention_masks, all_token_type_ids, all_example_index, examples, features
 
 
 def compute_predictions_logits(
@@ -636,7 +706,7 @@ def predict(model, tokenizer, input_data, n_best_size=10, max_answer_length=512,
             version_2_with_negative=True, null_score_diff_threshold=0):
     dataset, examples, features = load_examples(tokenizer, input_data)
 
-    eval_batch_size = 64
+    eval_batch_size = 10
 
     eval_dataloader = DataLoader(dataset, batch_size=eval_batch_size)
 

@@ -8,6 +8,10 @@ Desc:
 
 # ES docker容器内部的IP
 ES_DOCKER_IP = "172.17.0.4"
+# QA model docker容器内部的IP
+QA_DOCKER_IP = "172.17.0.7"
+# 模型推理url
+QA_URL = f'http://{QA_DOCKER_IP}:8080/qa'
 # 抽取式阅读器模型路径
 QA_MODEL_PATH = '../MODEL/luhua-chinese_pretrain_mrc_macbert_large'
 # intent对应的文字描述文件路径
