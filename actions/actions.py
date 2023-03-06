@@ -30,18 +30,10 @@ from actions.api import weather
 import math
 from datetime import date, timedelta
 from .utils.config import *
-from transformers import BertForQuestionAnswering, BertTokenizer
-# from .utils.document_qa_utils import predict
 import requests
 
 logger = logging.getLogger(__name__)
 
-# 加载QA模型
-model = BertForQuestionAnswering.from_pretrained(QA_MODEL_PATH)
-model.cuda()
-model.eval()
-tokenizer = BertTokenizer.from_pretrained(QA_MODEL_PATH, do_lower_case=True)
-logger.info('QA模型加载成功！')
 
 CQA_ES = CQA_ElasticSearchBM25(corpus_path=CQA_CORPUS_PATH, index_name=CQA_INDEX_NAME, reindexing=True)
 
@@ -404,7 +396,6 @@ class ActionTriggerResponseSelector(Action):
 
                         # print('input_datas', input_datas)
 
-                        # results = predict(model, tokenizer, input_datas)
                         results = requests.post(QA_URL, json=input_datas).json()['predict']
                         # print('results', results)
 
@@ -550,8 +541,6 @@ class ActionDocumentQA(Action):
             input_datas.append(input_data)
 
         # print('input_datas', input_datas)
-
-        # results = predict(model, tokenizer, input_datas)
         results = requests.post(QA_URL, json=input_datas).json()['predict']
         # print('results', results)
 
