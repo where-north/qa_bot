@@ -8,7 +8,6 @@ Desc:
 # from model import BertForQuestionAnswering
 import torch
 from transformers import BertTokenizer, BasicTokenizer, BertForQuestionAnswering
-from tqdm import tqdm
 from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
 import timeit
@@ -434,7 +433,7 @@ def squad_convert_examples_to_features_orig(examples, tokenizer, max_seq_length,
     features = []
     # 将tokenizer变量全局化
     squad_convert_example_to_features_init(tokenizer)
-    for example in tqdm(examples, ncols=150):
+    for example in examples:
         example_features = squad_convert_example_to_features_orig(example, max_seq_length, max_query_length)
         features.append(example_features)
 
@@ -475,7 +474,7 @@ def squad_convert_examples_to_features_orig_onnx(examples, tokenizer, max_seq_le
     features = []
     # 将tokenizer变量全局化
     squad_convert_example_to_features_init(tokenizer)
-    for example in tqdm(examples, ncols=150):
+    for example in examples:
         example_features = squad_convert_example_to_features_orig(example, max_seq_length, max_query_length)
         features.append(example_features)
 
@@ -713,7 +712,7 @@ def predict(model, tokenizer, input_data, n_best_size=10, max_answer_length=512,
     all_results = []
     start_time = timeit.default_timer()
 
-    for batch in tqdm(eval_dataloader, desc="Evaluating", ncols=150):
+    for batch in eval_dataloader:
         model.eval()
         batch = tuple(t.cuda() for t in batch)
 

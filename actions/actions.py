@@ -15,8 +15,8 @@ from rasa_sdk.executor import CollectingDispatcher
 
 import cpca  # cpca是chinese_province_city_area_mapper的简称，可用于处理中文地址
 
-from actions.utils.cqa_es import ElasticSearchBM25 as CQA_ElasticSearchBM25
-from actions.utils.dqa_es import ElasticSearchBM25 as DQA_ElasticSearchBM25
+# from actions.utils.cqa_es import ElasticSearchBM25 as CQA_ElasticSearchBM25
+# from actions.utils.dqa_es import ElasticSearchBM25 as DQA_ElasticSearchBM25
 
 import logging
 import json
@@ -33,11 +33,6 @@ from .utils.config import *
 import requests
 
 logger = logging.getLogger(__name__)
-
-
-CQA_ES = CQA_ElasticSearchBM25(corpus_path=CQA_CORPUS_PATH, index_name=CQA_INDEX_NAME, reindexing=True)
-
-DQA_ES = DQA_ElasticSearchBM25(index_name=DQA_INDEX_NAME, reindexing=True)
 
 
 # class ActionQueryWeather(Action):
@@ -345,7 +340,9 @@ class ActionTriggerResponseSelector(Action):
                         # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
                         dispatcher.utter_message(template='utter_canthelp')
                         return [SlotSet('department', slots_data.get('department')['initial_value'])]
-                    documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
+                    payload = {'user_query': f'{user_query}'}
+                    response = requests.post(CQA_URL, json=payload).json()
+                    documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
                     scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
                     cqa_confidence = scores_ranked[0][1]
                     # print('cqa', user_query)
@@ -377,8 +374,9 @@ class ActionTriggerResponseSelector(Action):
                         dqa_has_started = tracker.get_slot('DQA_has_started')
                         # print('dqa', user_query)
                         # TODO search in DocumentQA
-                        documents_ranked, scores_ranked = DQA_ES.query(topk=10, query=user_query,
-                                                                       return_scores=True)
+                        payload = {'user_query': f'{user_query}'}
+                        response = requests.post(DQA_URL, json=payload).json()
+                        documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
                         scores_ranked = _compute_softmax(scores_ranked)
 
                         input_datas = []
@@ -478,7 +476,9 @@ class ActionCommunityQA(Action):
         if not cqa_has_started:
             # print('cqa', user_query)
             # TODO search in CQA
-            documents_ranked, scores_ranked = CQA_ES.query(topk=5, query=user_query, return_scores=True)
+            payload = {'user_query': f'{user_query}'}
+            response = requests.post(CQA_URL, json=payload).json()
+            documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
             scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
             cqa_confidence = scores_ranked[0][1]
             # print('cqa_confidence', cqa_confidence)
@@ -524,7 +524,9 @@ class ActionDocumentQA(Action):
 
         # print('dqa', user_query)
         # TODO search in DocumentQA
-        documents_ranked, scores_ranked = DQA_ES.query(topk=10, query=user_query, return_scores=True)
+        payload = {'user_query': f'{user_query}'}
+        response = requests.post(DQA_URL, json=payload).json()
+        documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
         scores_ranked = _compute_softmax(scores_ranked)
 
         input_datas = []

@@ -41,3 +41,9 @@ tracker_store:
 #  username: username
 #  password: password
 #  queue: queue
+
+lock_store:
+    type: redis
+    url: 172.17.0.5
+    port: 6379
+    db: 10

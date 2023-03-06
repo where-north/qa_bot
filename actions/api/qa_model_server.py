@@ -17,11 +17,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor
-import asyncio
 
 app = FastAPI()
-executor = ThreadPoolExecutor(max_workers=5)
 
 
 # class ONNXModel():
@@ -94,12 +91,9 @@ class ResponseData(BaseModel):
 
 @app.post('/qa', response_model=ResponseData)
 async def qa_api(input_datas: List[InputData]):
-    # 将处理请求的函数提交到线程池中
-    future = executor.submit(predict, qa_model, tokenizer, input_datas)
 
     try:
-        # 等待处理请求的函数执行完毕并返回结果
-        pre = await asyncio.wrap_future(future)
+        pre = predict(qa_model, tokenizer, input_datas)
         response = ResponseData(predict=pre, ok=True)
     except Exception as e:
         response = ResponseData(predict=[], ok=False)
