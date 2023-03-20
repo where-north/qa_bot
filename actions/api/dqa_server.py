@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from collections import OrderedDict
 from actions.utils.dqa_es import ElasticSearchBM25 as DQA_ElasticSearchBM25
-import asyncio
+import pymysql
 
 app = FastAPI()
 
@@ -43,5 +43,8 @@ async def dqa_api(data: InputData):
 
 
 if __name__ == "__main__":
-    DQA_ES = DQA_ElasticSearchBM25(index_name=DQA_INDEX_NAME, reindexing=True)
+    # 打开数据库连接，注意passwd只接收str
+    db = pymysql.connect(host="127.0.0.1", port=3306, user="root", passwd='123456', db="official_document",
+                         charset='utf8')
+    DQA_ES = DQA_ElasticSearchBM25(index_name=DQA_INDEX_NAME, mysql_db=db, reindexing=True)
     uvicorn.run(app, host="0.0.0.0", port=9090)

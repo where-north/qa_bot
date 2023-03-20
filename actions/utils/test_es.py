@@ -115,7 +115,7 @@ class ElasticSearchBM25(object):
         for _, content, _ in zip(corpus.title, corpus.text, corpus.id):
             content = re.sub("\t", "", content)
             documents.append(content)
-        documents = documents[:500000]
+        documents = documents[:8000000]
         ndocuments = len(documents)
         print("ndocuments: ", ndocuments)
         dids = [str(i) for i in range(ndocuments)]
@@ -205,7 +205,7 @@ class ElasticSearchBM25(object):
 if __name__ == '__main__':
     # index name不能大写！！！！
     # corpus_paths = glob.glob("/media/cdrom1/chy/GC-DPR-main/data/dureader_data/cleaned_passages.tsv")
-    es = ElasticSearchBM25(corpus_path='/media/cdrom1/chy/GC-DPR-main/data/dureader_data/cleaned_passages0-0.tsv',
+    es = ElasticSearchBM25(corpus_path='/media/cdrom1/chy/GC-DPR-main/data/dureader_data/cleaned_passages.tsv',
                            index_name='test', reindexing=True)
     import json
 

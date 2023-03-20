@@ -15,14 +15,8 @@ import requests
 from typing import List, Dict
 from loguru import logger
 import re
-import pymysql
 import time
 from config import ES_DOCKER_IP
-
-# 打开数据库连接，注意passwd只接收str
-db = pymysql.connect(host="127.0.0.1", port=3306, user="root", passwd='123456', db="official_document", charset='utf8')
-# 使用 cursor() 方法创建一个游标对象 cursor
-cursor = db.cursor()
 
 
 def splitting_documents(content):
@@ -41,6 +35,7 @@ class ElasticSearchBM25(object):
     def __init__(
             self,
             index_name: str,
+            mysql_db,
             reindexing: bool = True,
             port_http: int = 9200,
             host: str = None,
@@ -48,6 +43,7 @@ class ElasticSearchBM25(object):
             max_waiting: int = 100,
     ):
         self.pid = None
+        self.mysql_db = mysql_db
         if host is not None:
             self._wait_and_check(host, port_http, max_waiting)
             logger.info(f"Successfully reached out to ES service at {host}:{port_http}")
@@ -139,6 +135,7 @@ class ElasticSearchBM25(object):
         document_lens = []  # 记录文档长度
         title_lens = []  # 记录标题长度
         dids = []
+        cursor = self.mysql_db.cursor()
         for database in databases:
             try:
                 sql = f"SELECT pid, title, content, src, news_time from {database}"

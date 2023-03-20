@@ -91,7 +91,6 @@ class ResponseData(BaseModel):
 
 @app.post('/qa', response_model=ResponseData)
 async def qa_api(input_datas: List[InputData]):
-
     try:
         pre = predict(qa_model, tokenizer, input_datas)
         response = ResponseData(predict=pre, ok=True)

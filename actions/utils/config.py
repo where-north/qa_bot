@@ -7,9 +7,9 @@ Desc:
 """
 
 # ES docker容器内部的IP
-ES_DOCKER_IP = "172.17.0.4"
+ES_DOCKER_IP = "172.17.0.3"
 # CQA DQA model docker容器内部的IP
-QA_DOCKER_IP = "172.17.0.7"
+QA_DOCKER_IP = "172.17.0.2"
 # CQA召回url
 CQA_URL = f'http://{QA_DOCKER_IP}:7070/cqa'
 # 模型推理url
