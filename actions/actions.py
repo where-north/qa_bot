@@ -15,9 +15,6 @@ from rasa_sdk.executor import CollectingDispatcher
 
 import cpca  # cpca是chinese_province_city_area_mapper的简称，可用于处理中文地址
 
-# from actions.utils.cqa_es import ElasticSearchBM25 as CQA_ElasticSearchBM25
-# from actions.utils.dqa_es import ElasticSearchBM25 as DQA_ElasticSearchBM25
-
 import logging
 import json
 from rasa_sdk.types import DomainDict
@@ -100,7 +97,10 @@ class ActionGreetUser(Action):
 
 
 class ActionDefaultAskAffirmation(Action):
-    """Asks for an affirmation of the intent if NLU threshold is not met."""
+    """
+    Asks for an affirmation of the intent if NLU threshold is not met.
+    意图澄清
+    """
 
     def name(self) -> Text:
         return "action_default_ask_affirmation"
@@ -125,6 +125,7 @@ class ActionDefaultAskAffirmation(Action):
         slots_data = domain.get("slots")
 
         intent_ranking = tracker.latest_message.get("intent_ranking", [])
+        # 排序第二的意图与第一的意图的置信度相差在0.2之内，推荐两个意图，否则仅第一个
         if len(intent_ranking) > 1:
             diff_intent_confidence = intent_ranking[0].get(
                 "confidence"
@@ -253,7 +254,20 @@ def check_last_event(tracker, event_type: Text, skip: int = 2, window: int = 3, 
 
 
 class ActionTriggerResponseSelector(Action):
-    """Returns the faq utterance dependent on the intent"""
+    """
+    Returns the faq utterance dependent on the intent
+    为16类常见问题 + out_of_scope + chitchat返回响应
+    1）对于16类常见问题：
+    每类问题包含一个“其他”意图，该意图包括属于该类但还没整理到常见问题列表中的问题，这种问题需要CQA和DQA解决
+    2）对于out_of_scope：
+    包含“non_chinese”和“其他”两个子意图
+    其中，“non_chinese”使用默认回复“utter_out_of_scope/non_chinese”，
+    “其他”回复选择列表：["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
+    3）对于chitchat：
+    设置了13种子意图，只能应对这13种类型的闲聊
+    @todo
+    接入chatgpt或文心一言，用来回复out_of_scope意图（将chitchat并入out_of_scope）
+    """
 
     def name(self) -> Text:
         return "action_trigger_response_selector"
@@ -275,7 +289,7 @@ class ActionTriggerResponseSelector(Action):
         slots_data = domain.get("slots")
 
         main_intent = tracker.latest_message.get("intent").get("name")
-        # 如果接收的是“/XX/XX”类似的意图消息，直接utter_/XX/XX
+        # 如果接收的是“/XX/XX”类似的意图消息，直接utter_/XX/XX（对应客户端直接选择的常见问题）
         if '/' in main_intent and '/其他' != main_intent[-3:]:
             dispatcher.utter_message(response=f"utter_{main_intent}")
             return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
@@ -297,11 +311,13 @@ class ActionTriggerResponseSelector(Action):
         user_query = tracker.latest_message.get("text")
         if user_query[0] == '/':
             user_query = tracker.get_slot('user_query')
+        # 如果捕捉的是“/XX/其他”或“nlu_fallback”意图
         if catch_other_intent:
             message_title = (
                 "您可能想问这些问题："
             )
             if "out_of_scope" in full_intent:
+                # TODO chat_api 插入点
                 button_title = ["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
                 button_payloads = ["/chitchat/ask_whatspossible", "/chitchat/卖个萌", "/chitchat/ask_whoisit",
                                    "/chitchat/鼓励", "/chitchat/讲个笑话"]
@@ -318,8 +334,7 @@ class ActionTriggerResponseSelector(Action):
                         "ranking")[1:]
                     second_sub_intent = other_sub_intents[0]
                 except Exception as e:
-                    logger.warning(e)
-                    logger.warning("can't get other sub intents such this intent come from fallback")
+                    logger.warning(str(e) + " 捕捉到第二次nlu_fallback，直接调用CQA！")
                 # 只有第二个子意图的置信度大于0.8时，才推荐FAQ
                 if second_sub_intent['confidence'] > 0.8:
                     buttons = []
@@ -435,6 +450,7 @@ class ActionTriggerResponseSelector(Action):
                             dispatcher.utter_message(text=message_title, buttons=buttons)
                         return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)] + [
                             SlotSet('department', slots_data.get('department')['initial_value'])]
+        # 如果捕捉的是“/XX/XX”此类预设的意图
         else:
             dispatcher.utter_message(template=f"utter_{full_intent}")
 
@@ -602,6 +618,7 @@ class FindTheCorrespondingWEATHER(Action):
         slots_data = domain.get("slots")
 
         user_in = tracker.latest_message.get("text")
+        print('查询天气 user_in', user_in)
         _, location_from_cpca = cpca.transform([user_in]).loc[0, ["省", "市"]]  # 提取text中的省和市
 
         location_from_slot = tracker.get_slot('location')
