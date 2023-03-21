@@ -100,6 +100,7 @@ class ActionDefaultAskAffirmation(Action):
     """
     Asks for an affirmation of the intent if NLU threshold is not met.
     意图澄清
+    已接入ChatGPT，在置信度低于0.8时使用ChatGPT回复，不进行意图推荐
     """
 
     def name(self) -> Text:
@@ -125,70 +126,80 @@ class ActionDefaultAskAffirmation(Action):
         slots_data = domain.get("slots")
 
         intent_ranking = tracker.latest_message.get("intent_ranking", [])
-        # 排序第二的意图与第一的意图的置信度相差在0.2之内，推荐两个意图，否则仅第一个
-        if len(intent_ranking) > 1:
-            diff_intent_confidence = intent_ranking[0].get(
-                "confidence"
-            ) - intent_ranking[1].get("confidence")
-            if diff_intent_confidence < 0.2:
-                intent_ranking = intent_ranking[:2]
-            else:
-                intent_ranking = intent_ranking[:1]
-
-        first_intent_names = [
-            intent.get("name", "")
-            if intent.get("name", "") not in ["chitchat", '图书馆服务', '就业指导', '后勤服务', '宿舍服务',
-                                              '教学教务', '奖助学金', '补考缓考', '选课事宜', '专业修读',
-                                              '学生证件', '校医院', '校园网服务', '研究生招生', '本科生招生',
-                                              '迎新服务', '常用联系方式']
-            else tracker.latest_message.get("response_selector")
-                .get(intent.get("name", ""))
-                .get("ranking")[0]
-                .get("intent_response_key")
-            for intent in intent_ranking
-        ]
-        if "nlu_fallback" in first_intent_names:
-            first_intent_names.remove("nlu_fallback")
-        if "greet" in first_intent_names:
-            first_intent_names.remove("greet")
-        if "/out_of_scope" in first_intent_names:
-            first_intent_names.remove("/out_of_scope")
-        if "out_of_scope" in first_intent_names:
-            first_intent_names.remove("out_of_scope")
-
-        user_query = tracker.latest_message.get("text")
-
-        if len(first_intent_names) > 0:
-            message_title = (
-                "对不起，我不太理解您的意思🤔，您是想问..."
-            )
-
-            entities = tracker.latest_message.get("entities", [])
-            entities = {e["entity"]: e["value"] for e in entities}
-
-            entities_json = json.dumps(entities)
-
-            buttons = []
-            for intent in first_intent_names:
-                button_title = self.get_button_title(intent, entities)
-                text = "{'affirmation':{'query': '%s'}}" % button_title
-                if len(entities_json) > 2:
-
-                    buttons.append(
-                        {"title": text, "payload": f"/{intent}{entities_json}"}
-                    )
-                else:
-                    buttons.append({"title": text, "payload": f"/{intent}"})
-
-            buttons.append({"title": "{'affirmation':{'query': '以上都不是'}}", "payload": "/deny"})
-
-            dispatcher.utter_message(text=message_title, buttons=buttons)
+        # 如果排序第一的意图的置信度低于0.8，不进行意图澄清，直接调用chat api回复
+        # TODO chat api 插入点
+        if intent_ranking[0].get("confidence") < 0.8:
+            user_query = tracker.latest_message.get("text")
+            payload = {'user_query': f'{user_query}'}
+            response = requests.post(CHAT_URL, json=payload).json()
+            result = response['result'].replace('\n\n', '<br><br>')
+            result = f"<div class='msg-text'>{result}</div>"
+            dispatcher.utter_message(text=result)
         else:
-            message_title = (
-                "<div class='msg-text'>对不起，我不太理解您的意思"
-                " 🤔 您可以问得再具体一些吗？</div>"
-            )
-            dispatcher.utter_message(text=message_title)
+            # 排序第二的意图与第一的意图的置信度相差在0.2之内，推荐两个意图，否则仅第一个
+            if len(intent_ranking) > 1:
+                diff_intent_confidence = intent_ranking[0].get(
+                    "confidence"
+                ) - intent_ranking[1].get("confidence")
+                if diff_intent_confidence < 0.2:
+                    intent_ranking = intent_ranking[:2]
+                else:
+                    intent_ranking = intent_ranking[:1]
+
+            first_intent_names = [
+                intent.get("name", "")
+                if intent.get("name", "") not in ["chitchat", '图书馆服务', '就业指导', '后勤服务', '宿舍服务',
+                                                  '教学教务', '奖助学金', '补考缓考', '选课事宜', '专业修读',
+                                                  '学生证件', '校医院', '校园网服务', '研究生招生', '本科生招生',
+                                                  '迎新服务', '常用联系方式']
+                else tracker.latest_message.get("response_selector")
+                    .get(intent.get("name", ""))
+                    .get("ranking")[0]
+                    .get("intent_response_key")
+                for intent in intent_ranking
+            ]
+            if "nlu_fallback" in first_intent_names:
+                first_intent_names.remove("nlu_fallback")
+            if "greet" in first_intent_names:
+                first_intent_names.remove("greet")
+            if "/out_of_scope" in first_intent_names:
+                first_intent_names.remove("/out_of_scope")
+            if "out_of_scope" in first_intent_names:
+                first_intent_names.remove("out_of_scope")
+
+            user_query = tracker.latest_message.get("text")
+
+            if len(first_intent_names) > 0:
+                message_title = (
+                    "对不起，我不太理解您的意思🤔，您是想问..."
+                )
+
+                entities = tracker.latest_message.get("entities", [])
+                entities = {e["entity"]: e["value"] for e in entities}
+
+                entities_json = json.dumps(entities)
+
+                buttons = []
+                for intent in first_intent_names:
+                    button_title = self.get_button_title(intent, entities)
+                    text = "{'affirmation':{'query': '%s'}}" % button_title
+                    if len(entities_json) > 2:
+
+                        buttons.append(
+                            {"title": text, "payload": f"/{intent}{entities_json}"}
+                        )
+                    else:
+                        buttons.append({"title": text, "payload": f"/{intent}"})
+
+                buttons.append({"title": "{'affirmation':{'query': '以上都不是'}}", "payload": "/deny"})
+
+                dispatcher.utter_message(text=message_title, buttons=buttons)
+            else:
+                message_title = (
+                    "<div class='msg-text'>对不起，我不太理解您的意思"
+                    " 🤔 您可以问得再具体一些吗？</div>"
+                )
+                dispatcher.utter_message(text=message_title)
 
         return [SlotSet('user_query', user_query)] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
                                                       slot_name in clear_slots]
@@ -265,8 +276,10 @@ class ActionTriggerResponseSelector(Action):
     “其他”回复选择列表：["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
     3）对于chitchat：
     设置了13种子意图，只能应对这13种类型的闲聊
-    @todo
-    接入chatgpt或文心一言，用来回复out_of_scope意图（将chitchat并入out_of_scope）
+    # Done
+    已接入chatgpt，用来回复out_of_scope意图
+    # TODO
+    后续可以将chitchat并入out_of_scope
     """
 
     def name(self) -> Text:
@@ -318,14 +331,19 @@ class ActionTriggerResponseSelector(Action):
             )
             if "out_of_scope" in full_intent:
                 # TODO chat_api 插入点
-                button_title = ["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
-                button_payloads = ["/chitchat/ask_whatspossible", "/chitchat/卖个萌", "/chitchat/ask_whoisit",
-                                   "/chitchat/鼓励", "/chitchat/讲个笑话"]
-                buttons = []
-                for title, payload in zip(button_title, button_payloads):
-                    text = "{'out_of_scope':{'query': '%s'}}" % title
-                    buttons.append({"title": text, "payload": payload})
-                dispatcher.utter_message(text=message_title, buttons=buttons)
+                # button_title = ["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
+                # button_payloads = ["/chitchat/ask_whatspossible", "/chitchat/卖个萌", "/chitchat/ask_whoisit",
+                #                    "/chitchat/鼓励", "/chitchat/讲个笑话"]
+                # buttons = []
+                # for title, payload in zip(button_title, button_payloads):
+                #     text = "{'out_of_scope':{'query': '%s'}}" % title
+                #     buttons.append({"title": text, "payload": payload})
+                # dispatcher.utter_message(text=message_title, buttons=buttons)
+                payload = {'user_query': f'{user_query}'}
+                response = requests.post(CHAT_URL, json=payload).json()
+                result = response['result'].replace('\n\n', '<br><br>')
+                result = f"<div class='msg-text'>{result}</div>"
+                dispatcher.utter_message(text=result)
             else:
                 second_sub_intent = {'confidence': 0}
                 other_sub_intents = []
