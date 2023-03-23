@@ -307,8 +307,26 @@ class ActionTriggerResponseSelector(Action):
             dispatcher.utter_message(response=f"utter_{main_intent}")
             return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
+        # 记录用户的输入
+        user_query = tracker.latest_message.get("text")
+        if user_query[0] == '/':
+            user_query = tracker.get_slot('user_query')
+
+        # story中定义了第二次nlu_fallback时不使用意图澄清，需要在这里进行捕捉
+        # 第二次nlu_fallback出现，会直接调用chat api(不再调用CQA)
+        if 'nlu_fallback' == main_intent:
+            # TODO chat_api 插入点
+            payload = {'user_query': f'{user_query}'}
+            response = requests.post(CHAT_URL, json=payload).json()
+            result = response['result'].replace('\n\n', '<br><br>')
+            result = f"<div class='msg-text'>{result}</div>"
+            dispatcher.utter_message(text=result)
+            return [SlotSet('user_query', user_query)] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value'])
+                                                          for
+                                                          slot_name in clear_slots]
+
         catch_other_intent = False
-        if '其他' in main_intent or 'nlu_fallback' == main_intent:  # 第二次nlu_fallback出现，会直接调用CQA
+        if '其他' in main_intent or 'nlu_fallback' == main_intent:
             catch_other_intent = True
             full_intent = main_intent
         else:
@@ -320,10 +338,7 @@ class ActionTriggerResponseSelector(Action):
             )
             if "其他" in full_intent:
                 catch_other_intent = True
-        # 记录用户的输入
-        user_query = tracker.latest_message.get("text")
-        if user_query[0] == '/':
-            user_query = tracker.get_slot('user_query')
+
         # 如果捕捉的是“/XX/其他”或“nlu_fallback”意图
         if catch_other_intent:
             message_title = (
@@ -331,14 +346,6 @@ class ActionTriggerResponseSelector(Action):
             )
             if "out_of_scope" in full_intent:
                 # TODO chat_api 插入点
-                # button_title = ["我能问你什么问题呢", "你给我卖个萌吧", "你是谁", "你能给我点鼓励吗", "你给我讲个笑话吧"]
-                # button_payloads = ["/chitchat/ask_whatspossible", "/chitchat/卖个萌", "/chitchat/ask_whoisit",
-                #                    "/chitchat/鼓励", "/chitchat/讲个笑话"]
-                # buttons = []
-                # for title, payload in zip(button_title, button_payloads):
-                #     text = "{'out_of_scope':{'query': '%s'}}" % title
-                #     buttons.append({"title": text, "payload": payload})
-                # dispatcher.utter_message(text=message_title, buttons=buttons)
                 payload = {'user_query': f'{user_query}'}
                 response = requests.post(CHAT_URL, json=payload).json()
                 result = response['result'].replace('\n\n', '<br><br>')
@@ -352,7 +359,7 @@ class ActionTriggerResponseSelector(Action):
                         "ranking")[1:]
                     second_sub_intent = other_sub_intents[0]
                 except Exception as e:
-                    logger.warning(str(e) + " 捕捉到第二次nlu_fallback，直接调用CQA！")
+                    logger.warning(str(e))
                 # 只有第二个子意图的置信度大于0.8时，才推荐FAQ
                 if second_sub_intent['confidence'] > 0.8:
                     buttons = []
