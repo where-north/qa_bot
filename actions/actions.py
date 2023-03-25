@@ -130,11 +130,7 @@ class ActionDefaultAskAffirmation(Action):
         # TODO chat api 插入点
         if intent_ranking[0].get("confidence") < 0.8:
             user_query = tracker.latest_message.get("text")
-            payload = {'user_query': f'{user_query}'}
-            response = requests.post(CHAT_URL, json=payload).json()
-            result = response['result'].replace('\n\n', '<br><br>')
-            result = f"<div class='msg-text'>{result}</div>"
-            dispatcher.utter_message(text=result)
+            dispatcher.utter_message(text="ASK_CHAT_API")
         else:
             # 排序第二的意图与第一的意图的置信度相差在0.2之内，推荐两个意图，否则仅第一个
             if len(intent_ranking) > 1:
@@ -316,14 +312,8 @@ class ActionTriggerResponseSelector(Action):
         # 第二次nlu_fallback出现，会直接调用chat api(不再调用CQA)
         if 'nlu_fallback' == main_intent:
             # TODO chat_api 插入点
-            payload = {'user_query': f'{user_query}'}
-            response = requests.post(CHAT_URL, json=payload).json()
-            result = response['result'].replace('\n\n', '<br><br>')
-            result = f"<div class='msg-text'>{result}</div>"
-            dispatcher.utter_message(text=result)
-            return [SlotSet('user_query', user_query)] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value'])
-                                                          for
-                                                          slot_name in clear_slots]
+            dispatcher.utter_message(text="ASK_CHAT_API")
+            return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
         catch_other_intent = False
         if '其他' in main_intent or 'nlu_fallback' == main_intent:
@@ -346,11 +336,7 @@ class ActionTriggerResponseSelector(Action):
             )
             if "out_of_scope" in full_intent:
                 # TODO chat_api 插入点
-                payload = {'user_query': f'{user_query}'}
-                response = requests.post(CHAT_URL, json=payload).json()
-                result = response['result'].replace('\n\n', '<br><br>')
-                result = f"<div class='msg-text'>{result}</div>"
-                dispatcher.utter_message(text=result)
+                dispatcher.utter_message(text="ASK_CHAT_API")
             else:
                 second_sub_intent = {'confidence': 0}
                 other_sub_intents = []
