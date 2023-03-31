@@ -6,8 +6,6 @@ intents:
 - affirm
 - bye
 - canthelp
-- chitchat:
-    use_entities: []
 - deny
 - greet
 - human_handoff
@@ -17,7 +15,7 @@ intents:
 - react_positive
 - thank
 - trigger_response_selector:
-    use_entities: []
+    use_entities: [department]
 - 图书馆服务
 - 就业指导
 - 后勤服务
@@ -35,8 +33,6 @@ intents:
 - 补考缓考
 - 选课事宜
 - 专业修读
-- community_qa
-- document_qa
 entities:
 - department
 - location
@@ -63,16 +59,12 @@ slots:
     type: bool
     initial_value: false
     influence_conversation: true
-  DQA_has_started:
-    type: bool
-    initial_value: false
-    influence_conversation: true
 
 responses:
   utter_weather_exception:
   - text: <div class='msg-text'>非常抱歉，未查询到该城市的天气状况</div>
   utter_contact_human:
-  - text: <div class='msg-text'>需要转到人工服务吗？（暂时还没有人工服务）</div>
+  - text: <div class='msg-text'>需要转到人工服务吗？</div>
   utter_greet:
   - text: <div class='msg-text'>您好！请问有什么可以帮到您？</div>
   utter_anything_else:

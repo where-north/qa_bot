@@ -1,0 +1,5 @@
+version: "2.0"
+responses:
+
+  utter_out_of_scope:
+  - text: "ASK_CHAT_API"

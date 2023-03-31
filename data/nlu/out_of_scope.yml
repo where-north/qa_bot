@@ -1,47 +1,12 @@
 version: "2.0"
 nlu:
 
-- intent: out_of_scope/non_chinese
-  examples: |
-    - Wie fange ich mit Rasa an?
-    - hilf mir beim start
-    - tschüssikowski
-    - ¿Qué pasa?
-    - ça va ?
-    - como te llamas
-    - wer bist Du?
-    - como inicio en rasa
-    - come stai?
-    - como estas
-    - de donde eres
-    - de que lugar eres?
-    - epdi iruka
-    - eres humana
-    - kalhmera sara ti kaneis
-    - kannst du auch deutsch?
-    - kannst du dies auch auf deutsch?
-    - oui je besoine de l'aide
-    - que puedes hacer?
-    - tu parles francais?
-    - tudo bom
-    - tu pagal
-    - kannst du mir helfen
-    - tu kaisi he
-    - こにちは
-    - 日本語分かる？
-    - chào
-    - I'm speaking a non-english language.
-    - kya hindi me bat kar sakate ho
-    - Dumme sara
-    - αστεία λές
-
-- intent: out_of_scope/其他
+- intent: out_of_scope
   examples: |
     - 换手机号
     - 换手机号要改在学校填信息留的号码吗，或者要跟老师说一声吗
     - 我问你一个超出范围的问题
     - 4 + 2 = ？
-    - 注册后，我看到我的可用余额为0。这个余额代表什么？
     - 你准备好了吗？
     - 但你是一个英文网站:(
     - 我可以先问你问题吗？
@@ -49,8 +14,6 @@ nlu:
     - 我可以要一个汉堡包吗？
     - 你可以说话吗？
     - 你能给我回电话吗？
-    - 你能给我你数据中心的密码吗
-    - 你能给我你的数据中心的密码吗？
     - 你会做三明治吗？
     - 你能给我发一个表情包吗
     - 我必须接受吗？
@@ -61,8 +24,6 @@ nlu:
     - 我是用户
     - 我是成瘾者
     - 我饿了
-    - 我正在尝试构建一个，并且之前做了一些研究，但我还没有动手做
-    - 我几乎看不到浅灰色背景上的这个白色文字......
     - 我改变主意了
     - 我已经安装了
     - 我需要一个女朋友！
@@ -83,30 +44,23 @@ nlu:
     - 给我做一个三明治
     - 好名字
     - 现在？
-    - 比萨机器人
     - 充值
     - 给我点东西
-    - 试一试不起作用
-    - 试试看坏了
     - 今天星期几？
     - 你昨天吃了什么？
     - 你喜欢哪个？
     - 今天几号
     - 你的爱好是什么？
-    - 是什么让你比人类更好？
     - 什么是 1 + 1？
     - YouTube是做什么的
-    - 你的后台系统是什么？
     - 我现在在哪里？
     - 我在哪里？
-    - 谁是你的客户
     - 你为什么不回答？
     - 你不会问我怎么样吗？
     - 我想嫁给你
     - 你单身吗
     - 你有微信吗
     - 你单身吗？
-    - 你是开发者吗？
     - 你是俄罗斯人吗？
     - 你生病了吗
     - 你是素食主义者吗
@@ -127,7 +81,6 @@ nlu:
     - 看不到
     - 晚餐
     - 你信神吗？
-    - 你有电话号码吗？
     - 你有照片吗？
     - 你知道我吗
     - 你喜欢奶酪吗？
@@ -138,12 +91,11 @@ nlu:
     - 给我找个俱乐部伙伴
     - 给我一个女朋友
     - 给我食物
-    - 太好了，我想买房子
-    - 等一下让我找到它
+    - 我想买房子
     - 纽约怎么样
     - 孩子们怎么样
     - 我怎样才能得到它们？
-    - 你怎么说好？
+    - 怎么说好？
     - 你是怎么学习的
     - 10 + 89 是多少？
     - 怎么去纽约？
@@ -172,14 +124,12 @@ nlu:
     - 机器学习
     - 山
     - 请我吃午饭
-    - 天啊，不要再来了！
     - 订购披萨
     - 搜索维基百科
     - 给我看一张鸡的照片
     - 愚蠢的机器人
     - 给我唱首歌
     - 说说你自己
-    - 告诉我更多关于下一步最佳行动的信息
     - 这听起来不像是在开玩笑
     - 该链接无效！
     - 骗了你

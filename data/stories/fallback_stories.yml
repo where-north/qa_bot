@@ -1,7 +1,7 @@
 version: "2.0"
 stories:
 
-  - story: 存在相似意图; 用户选择相似意图/或重新具体提问/或nlu_fallback; FAQ
+  - story: nlu_fallback; FAQ
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
@@ -22,11 +22,32 @@ stories:
           - intent: 研究生招生
           - intent: 迎新服务
           - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
       - action: action_trigger_response_selector
 
-  - story: 存在相似意图; 用户选择相似意图/或重新具体提问/或nlu_fallback; FAQ * 2
+  - story: nlu_fallback; out_of_scope
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: out_of_scope
+      - action: utter_out_of_scope
+
+  - story: nlu_fallback; nlu_fallback;
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+
+  - story: nlu_fallback; nlu_fallback; nlu_fallback;
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
+
+  - story: nlu_fallback; FAQ; nlu_fallback; FAQ;
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
@@ -47,8 +68,6 @@ stories:
           - intent: 研究生招生
           - intent: 迎新服务
           - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
       - action: action_trigger_response_selector
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
@@ -69,8 +88,6 @@ stories:
           - intent: 研究生招生
           - intent: 迎新服务
           - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
       - action: action_trigger_response_selector
 
   - story: 存在相似意图; 用户选择/或回复 affirm
@@ -122,23 +139,23 @@ stories:
       - intent: deny
       - action: utter_ask_rephrase
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector; FAQ
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation; FAQ
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
       - or:
           - intent: 图书馆服务
           - intent: 就业指导
@@ -156,286 +173,79 @@ stories:
           - intent: 研究生招生
           - intent: 迎新服务
           - intent: 常用联系方式
-          - intent: out_of_scope
       - action: action_trigger_response_selector
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector; affirm
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation; affirm
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
       - intent: affirm
       - action: utter_thumbsup
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector; bye
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation; bye
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
       - intent: bye
       - action: utter_bye
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector; canthelp
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation; canthelp
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
       - intent: canthelp
       - action: utter_canthelp
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector; human_handoff
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation; human_handoff
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
       - intent: human_handoff
       - action: utter_contact_human
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector; thank
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation; thank
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
       - intent: thank
       - action: utter_noworries
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_trigger_response_selector; greet
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; nlu_fallback; action_default_ask_affirmation; greet
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
       - intent: nlu_fallback
-      - action: action_trigger_response_selector
+      - action: action_default_ask_affirmation
       - intent: greet
       - action: utter_greet_noname
 
-  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; FAQ
+  - story: 存在相似意图; 用户不选择相似意图; 请求用户重新提问; oos
     steps:
       - intent: nlu_fallback
       - action: action_default_ask_affirmation
       - intent: deny
       - action: utter_ask_rephrase
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-
-  - story: 不存在相似意图; 请求用户重新提问; FAQ/nlu_fallback
-    steps:
-      - intent: nlu_fallback
-      - action: action_default_ask_affirmation
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-
-  - story: 不存在相似意图; 请求用户重新提问; FAQ/nlu_fallback; action_trigger_response_selector; affirm
-    steps:
-      - intent: nlu_fallback
-      - action: action_default_ask_affirmation
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-      - intent: affirm
-      - action: utter_thumbsup
-
-  - story: 不存在相似意图; 请求用户重新提问; FAQ/nlu_fallback; action_trigger_response_selector; bye
-    steps:
-      - intent: nlu_fallback
-      - action: action_default_ask_affirmation
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-      - intent: bye
-      - action: utter_bye
-
-  - story: 不存在相似意图; 请求用户重新提问; FAQ/nlu_fallback; action_trigger_response_selector; canthelp
-    steps:
-      - intent: nlu_fallback
-      - action: action_default_ask_affirmation
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-      - intent: canthelp
-      - action: utter_canthelp
-
-  - story: 不存在相似意图; 请求用户重新提问; FAQ/nlu_fallback; action_trigger_response_selector; human_handoff
-    steps:
-      - intent: nlu_fallback
-      - action: action_default_ask_affirmation
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-      - intent: human_handoff
-      - action: utter_contact_human
-
-  - story: 不存在相似意图; 请求用户重新提问; FAQ/nlu_fallback; action_trigger_response_selector; thank
-    steps:
-      - intent: nlu_fallback
-      - action: action_default_ask_affirmation
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-      - intent: thank
-      - action: utter_noworries
-
-  - story: 不存在相似意图; 请求用户重新提问; FAQ/nlu_fallback; action_trigger_response_selector; greet
-    steps:
-      - intent: nlu_fallback
-      - action: action_default_ask_affirmation
-      - or:
-          - intent: 图书馆服务
-          - intent: 就业指导
-          - intent: 后勤服务
-          - intent: 宿舍服务
-          - intent: 教学教务
-          - intent: 奖助学金
-          - intent: 专业修读
-          - intent: 补考缓考
-          - intent: 选课事宜
-          - intent: 学生证件
-          - intent: 校医院
-          - intent: 校园网服务
-          - intent: 本科生招生
-          - intent: 研究生招生
-          - intent: 迎新服务
-          - intent: 常用联系方式
-          - intent: out_of_scope
-          - intent: nlu_fallback
-      - action: action_trigger_response_selector
-      - intent: greet
-      - action: utter_greet_noname
-
+      - intent: out_of_scope
+      - action: utter_out_of_scope
