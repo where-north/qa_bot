@@ -80,7 +80,7 @@ pipeline:
     epochs: 100
     retrieval_intent: 常用联系方式 # 只针对faq检索意图训练响应选择器模型
   - name: FallbackClassifier # 如果NLU意图分类不明确，则使用意图nlu_fallback对消息进行分类。置信度设置为与回退阈值相同。
-    threshold: 0.9
+    threshold: 0.95
     ambiguity_threshold: 0.1
 
 # Configuration for Rasa Core.
