@@ -260,6 +260,96 @@ def check_last_event(tracker, event_type: Text, skip: int = 2, window: int = 3, 
     return False
 
 
+def search_in_cqa(user_query, dispatcher):
+    # TODO search in CQA
+    payload = {'user_query': f'{user_query}'}
+    response = requests.post(CQA_URL, json=payload).json()
+    documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
+    scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
+    cqa_confidence = scores_ranked[0][1]
+    logger.info(f'cqa: {user_query} confidence: {cqa_confidence}')
+    # TODO set threshold
+    threshold = 10
+    # 只有置信度大于阈值时，才推荐CQA
+    if cqa_confidence > threshold:
+        message_title = (
+            "为您找到这些相似问题："
+        )
+        buttons = []
+        for pid, _ in scores_ranked:
+            document = documents_ranked[pid]
+            title, query, answer = document.split('\t')
+            text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
+            buttons.append({"title": text, "payload": ''})
+        text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("以上都不是", "")
+        buttons.append({"title": text, "payload": "/deny"})
+        dispatcher.utter_message(text=message_title, buttons=buttons)
+        return True
+    else:
+        return False
+
+
+def search_in_dqa(user_query, dispatcher):
+    # TODO search in DocumentQA
+    logger.info(f'dqa: {user_query}')
+    payload = {'user_query': f'{user_query}'}
+    response = requests.post(DQA_URL, json=payload).json()
+    documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
+    scores_ranked = _compute_softmax(scores_ranked)
+
+    input_datas = []
+    pid_set = []
+    for pid, _ in scores_ranked.items():
+        if pid not in pid_set:
+            pid_set.append(pid)
+        item = documents_ranked[pid]
+        document = item['document']
+        input_data = {'title': '',
+                      'document': document,
+                      'document_id': pid,
+                      'question': user_query}
+        input_datas.append(input_data)
+
+    results = requests.post(QA_URL, json=input_datas).json()['predict']
+
+    buttons = []
+    # 同一文档可能召回多个切片
+    had_seen_pid = []
+    for pid in scores_ranked.keys():
+        ans_dict = results[pid]
+        ans, qa_score = ans_dict['text'], ans_dict['score']
+        rank_score = scores_ranked[pid]
+        if ans == 'no answer' or qa_score == 0 or rank_score == 0:
+            continue
+        if qa_score > 0.7:
+            had_seen_pid.append(pid.split('seg')[0])
+            title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+            text = "{'dqa':{'ans': '%s', 'title': '%s', 'src': '%s'}}" % (ans, title, src)
+            buttons.append({"title": text, "payload": ''})
+            break
+    if buttons:
+        # 如果抽取出答案，给出答案以及来源，同时也呈现其他相关通知
+        for pid in pid_set:
+            if pid.split('seg')[0] not in had_seen_pid:
+                had_seen_pid.append(pid.split('seg')[0])
+                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                buttons.append({"title": text, "payload": ''})
+        dispatcher.utter_message(text=' ', buttons=buttons)
+    else:
+        # 如果未抽取出答案，呈现相关通知
+        message_title = (
+            "为您在公文通中找到这些相关通知："
+        )
+        for pid in pid_set:
+            if pid.split('seg')[0] not in had_seen_pid:
+                had_seen_pid.append(pid.split('seg')[0])
+                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+                buttons.append({"title": text, "payload": ''})
+        dispatcher.utter_message(text=message_title, buttons=buttons)
+
+
 class ActionTriggerResponseSelector(Action):
     """
     Returns the faq utterance dependent on the intent
@@ -299,147 +389,75 @@ class ActionTriggerResponseSelector(Action):
         if user_query[0] == '/':
             user_query = tracker.get_slot('user_query')
 
-        catch_other_intent = False
-        if '其他' in main_intent:
-            catch_other_intent = True
-            full_intent = main_intent
-        else:
+        first_full_intent_confidence = 0
+        full_intent = None
+        try:
             full_intent = (
                 tracker.latest_message.get("response_selector", {})
                     .get(main_intent, {})
                     .get("response", {})
                     .get("intent_response_key")
             )
-            if "其他" in full_intent:
-                catch_other_intent = True
+            first_full_intent_confidence = \
+                tracker.latest_message.get("response_selector", {}).get(main_intent, {}).get("ranking")[0]['confidence']
+            logger.info(
+                f"first_full_intent: {full_intent} first_full_intent_confidence: {first_full_intent_confidence}")
+        except Exception as e:
+            logger.warning(str(e) + f' 捕捉到客户端直接返回的{main_intent}')
 
-        # 如果捕捉的是“/XX/其他”
-        if catch_other_intent:
-
-            second_sub_intent = {'confidence': 0}
-            other_sub_intents = []
-            try:
-                other_sub_intents = tracker.latest_message.get("response_selector", {}).get(main_intent, {}).get(
-                    "ranking")[1:]
-                second_sub_intent = other_sub_intents[0]
-            except Exception as e:
-                logger.warning(str(e) + f' 捕捉到客户端直接返回的{main_intent}')
-            # 只有第二个子意图的置信度大于0.8时，才推荐FAQ
-            if second_sub_intent['confidence'] > 0.8:
-                message_title = (
-                    "您可能想问这些问题："
-                )
-                buttons = []
-                for line in other_sub_intents[:5]:
-                    intent = line['intent_response_key']
-                    button_title = self.get_button_title(intent)
-                    text = "{'faq':{'query': '%s'}}" % button_title
-                    logger.info(f"faq intent: {intent}")
-                    buttons.append({"title": text, "payload": f"/{intent}"})
-                text = "{'faq':{'query': '%s'}}" % "以上都不是"
-                buttons.append({"title": text, "payload": "/deny"})
-
-                dispatcher.utter_message(text=message_title, buttons=buttons)
-            # 否则，直接CQA
+        # 如果first_full_intent_confidence大于阈值
+        if first_full_intent_confidence > 0.9:
+            # full_intent不是“/XX/其他”子意图，直接返回答案
+            if "其他" not in full_intent:
+                dispatcher.utter_message(template=f"utter_{full_intent}")
+            # full_intent是“/XX/其他”子意图（因为意图的置信度已超过0.9，所以没必要再进行FAQ相似问题推荐，可以直接进行CQA DQA）
             else:
-                # TODO search in CQA
+                # TODO 这里的判断有存在的必要？deny意图会在这里触发CQA DQA吗？
                 if not user_query:
-                    # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
+                    # 如果用户之前没有问过问题，但发送了deny意图触发了CQA DQA，直接回复抱歉
                     dispatcher.utter_message(template='utter_canthelp')
                     return [SlotSet('department', slots_data.get('department')['initial_value'])]
-                payload = {'user_query': f'{user_query}'}
-                response = requests.post(CQA_URL, json=payload).json()
-                documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
-                scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
-                cqa_confidence = scores_ranked[0][1]
-                logger.info(f'cqa: {user_query} confidence: {cqa_confidence}')
-                # TODO set threshold
-                threshold = 10
-                # 只有置信度大于阈值时，才推荐CQA
-                if cqa_confidence > threshold:
-                    message_title = (
-                        "为您找到这些相似问题："
-                    )
-                    buttons = []
-                    for pid, _ in scores_ranked:
-                        document = documents_ranked[pid]
-                        title, query, answer = document.split('\t')
-                        text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
-                        buttons.append({"title": text, "payload": ''})
-                    text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("以上都不是", "")
-                    buttons.append({"title": text, "payload": "/deny"})
-                    dispatcher.utter_message(text=message_title, buttons=buttons)
+                cqa_confidence_lt_threshold = search_in_cqa(user_query, dispatcher)
+                # cqa 置信度大于阈值
+                if cqa_confidence_lt_threshold:
                     return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
                         SlotSet('department', slots_data.get('department')['initial_value'])]
                 # 否则，直接DQA
                 else:
-                    if not user_query:
-                        # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
-                        dispatcher.utter_message(template='utter_canthelp')
-                        return [SlotSet('department', slots_data.get('department')['initial_value'])]
-                    # TODO search in DocumentQA
-                    logger.info(f'dqa: {user_query}')
-                    payload = {'user_query': f'{user_query}'}
-                    response = requests.post(DQA_URL, json=payload).json()
-                    documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
-                    scores_ranked = _compute_softmax(scores_ranked)
-
-                    input_datas = []
-                    pid_set = []
-                    for pid, _ in scores_ranked.items():
-                        if pid not in pid_set:
-                            pid_set.append(pid)
-                        item = documents_ranked[pid]
-                        document = item['document']
-                        input_data = {'title': '',
-                                      'document': document,
-                                      'document_id': pid,
-                                      'question': user_query}
-                        input_datas.append(input_data)
-
-                    results = requests.post(QA_URL, json=input_datas).json()['predict']
-
-                    buttons = []
-                    # 同一文档可能召回多个切片
-                    had_seen_pid = []
-                    for pid in scores_ranked.keys():
-                        ans_dict = results[pid]
-                        ans, qa_score = ans_dict['text'], ans_dict['score']
-                        rank_score = scores_ranked[pid]
-                        if ans == 'no answer' or qa_score == 0 or rank_score == 0:
-                            continue
-                        if qa_score > 0.7:
-                            had_seen_pid.append(pid.split('seg')[0])
-                            title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
-                            text = "{'dqa':{'ans': '%s', 'title': '%s', 'src': '%s'}}" % (ans, title, src)
-                            buttons.append({"title": text, "payload": ''})
-                            break
-                    if buttons:
-                        # 如果抽取出答案，给出答案以及来源，同时也呈现其他相关通知
-                        for pid in pid_set:
-                            if pid.split('seg')[0] not in had_seen_pid:
-                                had_seen_pid.append(pid.split('seg')[0])
-                                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
-                                text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
-                                buttons.append({"title": text, "payload": ''})
-                        dispatcher.utter_message(text=' ', buttons=buttons)
-                    else:
-                        # 如果未抽取出答案，呈现相关通知
-                        message_title = (
-                            "为您在公文通中找到这些相关通知："
-                        )
-                        for pid in pid_set:
-                            if pid.split('seg')[0] not in had_seen_pid:
-                                had_seen_pid.append(pid.split('seg')[0])
-                                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
-                                text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
-                                buttons.append({"title": text, "payload": ''})
-                        dispatcher.utter_message(text=message_title, buttons=buttons)
-                    return [SlotSet('user_query', user_query)] + \
-                           [SlotSet('department', slots_data.get('department')['initial_value'])]
-        # 如果捕捉的是“/XX/XX”此类预设的意图
+                    search_in_dqa(user_query, dispatcher)
+        # 意图的置信度小于0.9但大于0.8，可以进行FAQ相似问题推荐
+        elif first_full_intent_confidence > 0.8:
+            sub_intents = tracker.latest_message.get("response_selector", {}).get(main_intent, {}).get("ranking")
+            message_title = (
+                "您可能想问这些问题："
+            )
+            buttons = []
+            for line in sub_intents[:5]:
+                intent = line['intent_response_key']
+                if "其他" in intent:
+                    continue
+                button_title = self.get_button_title(intent)
+                text = "{'faq':{'query': '%s'}}" % button_title
+                logger.info(f"faq intent: {intent}")
+                buttons.append({"title": text, "payload": f"/{intent}"})
+            text = "{'faq':{'query': '%s'}}" % "以上都不是"
+            buttons.append({"title": text, "payload": "/deny"})
+            dispatcher.utter_message(text=message_title, buttons=buttons)
+        # 意图的置信度小于0.8，直接进行CQA DQA
         else:
-            dispatcher.utter_message(template=f"utter_{full_intent}")
+            # TODO 这里的判断有存在的必要？deny意图会在这里触发CQA DQA吗？
+            if not user_query:
+                # 如果用户之前没有问过问题，但发送了deny意图触发了CQA DQA，直接回复抱歉
+                dispatcher.utter_message(template='utter_canthelp')
+                return [SlotSet('department', slots_data.get('department')['initial_value'])]
+            cqa_confidence_lt_threshold = search_in_cqa(user_query, dispatcher)
+            # cqa 置信度大于阈值
+            if cqa_confidence_lt_threshold:
+                return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
+                    SlotSet('department', slots_data.get('department')['initial_value'])]
+            # 否则，直接DQA
+            else:
+                search_in_dqa(user_query, dispatcher)
 
         return [SlotSet('user_query', user_query)] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
                                                       slot_name in clear_slots]
@@ -468,39 +486,16 @@ class ActionCommunityQA(Action):
             tracker: Tracker,
             domain: Dict[Text, Any],
     ) -> List[EventType]:
-        clear_slots = ['department']
+        clear_slots = ['department', 'CQA_has_started']
         slots_data = domain.get("slots")
         user_query = tracker.get_slot('user_query')
         if not user_query:
             # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
             dispatcher.utter_message(template='utter_canthelp')
             return [SlotSet('department', slots_data.get('department')['initial_value'])]
-        cqa_has_started = tracker.get_slot('CQA_has_started')
-        if not cqa_has_started:
 
-            # TODO search in CQA
-            payload = {'user_query': f'{user_query}'}
-            response = requests.post(CQA_URL, json=payload).json()
-            documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
-            scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
-            cqa_confidence = scores_ranked[0][1]
-            logger.info(f'cqa: {user_query} confidence: {cqa_confidence}')
-            # TODO set threshold
-            threshold = 10
-            # 只有置信度大于阈值时，才推荐CQA
-            if cqa_confidence > threshold:
-                message_title = (
-                    "为您找到这些相似问题："
-                )
-                buttons = []
-                for pid, _ in scores_ranked:
-                    document = documents_ranked[pid]
-                    title, query, answer = document.split('\t')
-                    text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
-                    buttons.append({"title": text, "payload": ''})
-                text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("以上都不是", "")
-                buttons.append({"title": text, "payload": "/deny"})
-                dispatcher.utter_message(text=message_title, buttons=buttons)
+        search_in_cqa(user_query, dispatcher)
+
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
@@ -516,7 +511,7 @@ class ActionDocumentQA(Action):
             tracker: Tracker,
             domain: Dict[Text, Any],
     ) -> List[EventType]:
-        clear_slots = ['department']
+        clear_slots = ['department', 'CQA_has_started']
         slots_data = domain.get("slots")
         user_query = tracker.get_slot('user_query')
         if not user_query:
@@ -524,66 +519,8 @@ class ActionDocumentQA(Action):
             dispatcher.utter_message(template='utter_canthelp')
             return [SlotSet('department', slots_data.get('department')['initial_value'])]
 
-        logger.info(f'dqa: {user_query}')
-        # TODO search in DocumentQA
-        payload = {'user_query': f'{user_query}'}
-        response = requests.post(DQA_URL, json=payload).json()
-        documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
-        scores_ranked = _compute_softmax(scores_ranked)
+        search_in_dqa(user_query, dispatcher)
 
-        input_datas = []
-        pid_set = []
-        for pid, _ in scores_ranked.items():
-            if pid not in pid_set:
-                pid_set.append(pid)
-            item = documents_ranked[pid]
-            document = item['document']
-            input_data = {'title': '',
-                          'document': document,
-                          'document_id': pid,
-                          'question': user_query}
-            input_datas.append(input_data)
-
-        results = requests.post(QA_URL, json=input_datas).json()['predict']
-
-        buttons = []
-        # 同一文档可能召回多个切片
-        had_seen_pid = []
-        for pid in scores_ranked.keys():
-            ans_dict = results[pid]
-            ans, qa_score = ans_dict['text'], ans_dict['score']
-            rank_score = scores_ranked[pid]
-            if ans == 'no answer' or qa_score == 0 or rank_score == 0:
-                continue
-            if qa_score > 0.7:
-                had_seen_pid.append(pid.split('seg')[0])
-                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
-                text = "{'dqa':{'ans': '%s', 'title': '%s', 'src': '%s'}}" % (ans, title, src)
-                buttons.append({"title": text, "payload": ''})
-                break
-        if buttons:
-            # 如果抽取出答案，给出答案以及来源，同时也呈现其他相关通知
-            for pid in pid_set:
-                if pid.split('seg')[0] not in had_seen_pid:
-                    had_seen_pid.append(pid.split('seg')[0])
-                    title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
-                    text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
-                    buttons.append({"title": text, "payload": ''})
-            dispatcher.utter_message(text=' ', buttons=buttons)
-        else:
-            # 如果未抽取出答案，呈现相关通知
-            message_title = (
-                "为您在公文通中找到这些相关通知："
-            )
-            # 同一文档可能召回多个切片，只保留一个
-            had_seen_pid = []
-            for pid in pid_set:
-                if pid.split('seg')[0] not in had_seen_pid:
-                    had_seen_pid.append(pid.split('seg')[0])
-                    title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
-                    text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
-                    buttons.append({"title": text, "payload": ''})
-            dispatcher.utter_message(text=message_title, buttons=buttons)
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
@@ -602,7 +539,7 @@ class FindTheCorrespondingWEATHER(Action):
         slots_data = domain.get("slots")
 
         user_in = tracker.latest_message.get("text")
-        print('查询天气 user_in', user_in)
+        logger.info(f'查询天气 user_in: {user_in}')
         _, location_from_cpca = cpca.transform([user_in]).loc[0, ["省", "市"]]  # 提取text中的省和市
 
         location_from_slot = tracker.get_slot('location')
