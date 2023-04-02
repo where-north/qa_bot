@@ -4,10 +4,5 @@
 #    steps:
 #      - intent: nlu_fallback
 #      - action: action_default_ask_affirmation
-#
-#  - rule: Single stage fallback | call default fallback if user is not ok
-#    steps:
-#      - action: action_default_ask_affirmation
-#      - intent: out_of_scope
-#      - action: action_trigger_response_selector
+
 

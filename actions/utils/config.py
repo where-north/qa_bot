@@ -28,8 +28,6 @@ INTENT_DESCRIPTION_MAPPING_PATH = "actions/intent_description_mapping.csv"
 QUERY_KEY = "82510add8a7340caa9afcabfab78a639"
 CITY_LOOKUP_URL = "https://geoapi.qweather.com/v2/city/lookup"
 WEATHER_URL = "https://devapi.qweather.com/v7/weather/now"
-# 域外意图文字描述
-USER_INTENT_OUT_OF_SCOPE = "out_of_scope"
 # CQA问答数据路径
 CQA_CORPUS_PATH = '../official_document_crawler/data/cqa_data1.csv'
 # CQA ES索引名称

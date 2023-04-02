@@ -15,7 +15,7 @@ if __name__ == '__main__':
     intent_mapping = pd.read_csv('../intent_description_mapping.csv')
     intent_query = {}
     for intent, query in zip(list(intent_mapping['intent']), list(intent_mapping['button'])):
-        if '/' not in intent or 'out_of_scope' in intent:
+        if '/' not in intent:
             continue
         intent_query[intent] = query
 

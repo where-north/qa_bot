@@ -10,7 +10,6 @@ intents:
 - greet
 - human_handoff
 - nlu_fallback
-- out_of_scope
 - react_negative
 - react_positive
 - thank

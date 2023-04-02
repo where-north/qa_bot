@@ -158,10 +158,6 @@ class ActionDefaultAskAffirmation(Action):
                 first_intent_names.remove("nlu_fallback")
             if "greet" in first_intent_names:
                 first_intent_names.remove("greet")
-            if "/out_of_scope" in first_intent_names:
-                first_intent_names.remove("/out_of_scope")
-            if "out_of_scope" in first_intent_names:
-                first_intent_names.remove("out_of_scope")
 
             user_query = tracker.latest_message.get("text")
 
@@ -438,7 +434,6 @@ class ActionTriggerResponseSelector(Action):
                     continue
                 button_title = self.get_button_title(intent)
                 text = "{'faq':{'query': '%s'}}" % button_title
-                logger.info(f"faq intent: {intent}")
                 buttons.append({"title": text, "payload": f"/{intent}"})
             text = "{'faq':{'query': '%s'}}" % "以上都不是"
             buttons.append({"title": text, "payload": "/deny"})
