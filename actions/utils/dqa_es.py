@@ -160,7 +160,7 @@ class ElasticSearchBM25(object):
             except Exception as e:
                 logger.error(e)
                 # 发生错误时回滚
-                db.rollback()
+                self.mysql_db.rollback()
 
         logger.info(
             f'标题最大长度: {max(title_lens)} '

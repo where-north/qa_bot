@@ -12,14 +12,18 @@ ES_DOCKER_IP = "172.17.0.3"
 QA_DOCKER_IP = "172.17.0.2"
 # Chat Api docker容器内部的IP
 CHAT_DOCKER_IP = "172.17.0.7"
+# dual encoder model docker容器内部的IP
+DE_DOCKER_IP = "172.17.0.8"
 # chatgpt url
 CHAT_URL = f'http://{CHAT_DOCKER_IP}:8888/chat'
 # CQA召回url
-CQA_URL = f'http://{QA_DOCKER_IP}:7070/cqa'
+CQA_ES_URL = f'http://{QA_DOCKER_IP}:7070/cqa'
+CQA_DE_URL = f'http://{DE_DOCKER_IP}:7777/cqa'
 # 模型推理url
 QA_URL = f'http://{QA_DOCKER_IP}:8080/qa'
 # DQA召回url
-DQA_URL = f'http://{QA_DOCKER_IP}:9090/dqa'
+DQA_ES_URL = f'http://{QA_DOCKER_IP}:9090/dqa'
+DQA_DE_URL = f'http://{DE_DOCKER_IP}:6666/dqa'
 # 抽取式阅读器模型路径
 QA_MODEL_PATH = '../MODEL/luhua-chinese_pretrain_mrc_macbert_large'
 # intent对应的文字描述文件路径

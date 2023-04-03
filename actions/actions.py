@@ -257,24 +257,46 @@ def check_last_event(tracker, event_type: Text, skip: int = 2, window: int = 3, 
 
 
 def search_in_cqa(user_query, dispatcher):
-    # TODO search in CQA
     payload = {'user_query': f'{user_query}'}
-    response = requests.post(CQA_URL, json=payload).json()
-    documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
-    scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
-    cqa_confidence = scores_ranked[0][1]
-    logger.info(f'cqa: {user_query} confidence: {cqa_confidence}')
-    # TODO set threshold
-    threshold = 10
+    # # search in ES CQA
+    # response = requests.post(CQA_ES_URL, json=payload).json()
+    # documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
+    # scores_ranked = sorted(scores_ranked.items(), key=lambda x: float(x[1]), reverse=True)
+    # cqa_confidence = scores_ranked[0][1]
+    # logger.info(f'cqa: {user_query} confidence: {cqa_confidence}')
+    # # TODO set threshold
+    # threshold = 10
+    # # 只有置信度大于阈值时，才推荐CQA
+    # if cqa_confidence > threshold:
+    #     message_title = (
+    #         "为您找到这些相似问题："
+    #     )
+    #     buttons = []
+    #     for pid, _ in scores_ranked:
+    #         document = documents_ranked[pid]
+    #         title, query, answer = document.split('\t')
+    #         text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
+    #         buttons.append({"title": text, "payload": ''})
+    #     text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("以上都不是", "")
+    #     buttons.append({"title": text, "payload": "/deny"})
+    #     dispatcher.utter_message(text=message_title, buttons=buttons)
+    #     return True
+    # else:
+    #     return False
+    # search in DE CQA
+    response = requests.post(CQA_DE_URL, json=payload).json()
+    value_list = list(response['result_dict'].values())
+    threshold = 0.9
+    logger.info(f'cqa: {user_query} score: {value_list[0]["score"]}')
     # 只有置信度大于阈值时，才推荐CQA
-    if cqa_confidence > threshold:
+    if value_list[0]['score'] > threshold:
         message_title = (
             "为您找到这些相似问题："
         )
         buttons = []
-        for pid, _ in scores_ranked:
-            document = documents_ranked[pid]
-            title, query, answer = document.split('\t')
+        for value in value_list:
+            _, query, answer, answer_time = value['title'], value['content'], value['answer'], value['answer_time']
+            answer = answer + '<br>回复时间：' + answer_time
             text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % (query, answer)
             buttons.append({"title": text, "payload": ''})
         text = "{'cqa':{'query': '%s', 'answer': '%s'}}" % ("以上都不是", "")
@@ -285,20 +307,80 @@ def search_in_cqa(user_query, dispatcher):
         return False
 
 
+# def search_in_dqa(user_query, dispatcher):
+#     # TODO search in DocumentQA
+#     logger.info(f'dqa: {user_query}')
+#     payload = {'user_query': f'{user_query}'}
+#     response = requests.post(DQA_ES_URL, json=payload).json()
+#     documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
+#     scores_ranked = _compute_norm(scores_ranked)
+#
+#     input_datas = []
+#     pid_set = []
+#     for pid, _ in scores_ranked.items():
+#         if pid not in pid_set:
+#             pid_set.append(pid)
+#         item = documents_ranked[pid]
+#         document = item['document']
+#         input_data = {'title': '',
+#                       'document': document,
+#                       'document_id': pid,
+#                       'question': user_query}
+#         input_datas.append(input_data)
+#
+#     results = requests.post(QA_URL, json=input_datas).json()['predict']
+#
+#     buttons = []
+#     # 同一文档可能召回多个切片
+#     had_seen_pid = []
+#     for pid in scores_ranked.keys():
+#         ans_dict = results[pid]
+#         ans, qa_score = ans_dict['text'], ans_dict['score']
+#         rank_score = scores_ranked[pid]
+#         if ans == 'no answer' or qa_score == 0 or rank_score == 0:
+#             continue
+#         if qa_score > 0.7:
+#             had_seen_pid.append(pid.split('seg')[0])
+#             title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+#             text = "{'dqa':{'ans': '%s', 'title': '%s', 'src': '%s'}}" % (ans, title, src)
+#             buttons.append({"title": text, "payload": ''})
+#             break
+#     if buttons:
+#         # 如果抽取出答案，给出答案以及来源，同时也呈现其他相关通知
+#         for pid in pid_set:
+#             if pid.split('seg')[0] not in had_seen_pid:
+#                 had_seen_pid.append(pid.split('seg')[0])
+#                 title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+#                 text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+#                 buttons.append({"title": text, "payload": ''})
+#         dispatcher.utter_message(text=' ', buttons=buttons)
+#     else:
+#         # 如果未抽取出答案，呈现相关通知
+#         message_title = (
+#             "为您在公文通中找到这些相关通知："
+#         )
+#         for pid in pid_set:
+#             if pid.split('seg')[0] not in had_seen_pid:
+#                 had_seen_pid.append(pid.split('seg')[0])
+#                 title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+#                 text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
+#                 buttons.append({"title": text, "payload": ''})
+#         dispatcher.utter_message(text=message_title, buttons=buttons)
+
+
 def search_in_dqa(user_query, dispatcher):
-    # TODO search in DocumentQA
+    # search in DocumentQA
     logger.info(f'dqa: {user_query}')
     payload = {'user_query': f'{user_query}'}
-    response = requests.post(DQA_URL, json=payload).json()
-    documents_ranked, scores_ranked = response['documents_ranked'], response['scores_ranked']
-    scores_ranked = _compute_softmax(scores_ranked)
+    response = requests.post(DQA_DE_URL, json=payload).json()['result_dict']
+    logger.info(f'document rank score: {[round(i["score"], 4) for i in response.values()]}')
 
     input_datas = []
     pid_set = []
-    for pid, _ in scores_ranked.items():
+    for pid in response.keys():
         if pid not in pid_set:
             pid_set.append(pid)
-        item = documents_ranked[pid]
+        item = response[pid]
         document = item['document']
         input_data = {'title': '',
                       'document': document,
@@ -311,15 +393,15 @@ def search_in_dqa(user_query, dispatcher):
     buttons = []
     # 同一文档可能召回多个切片
     had_seen_pid = []
-    for pid in scores_ranked.keys():
+    for pid in response.keys():
         ans_dict = results[pid]
         ans, qa_score = ans_dict['text'], ans_dict['score']
-        rank_score = scores_ranked[pid]
-        if ans == 'no answer' or qa_score == 0 or rank_score == 0:
+        rank_score = response[pid]['score']
+        if ans == 'no answer' or qa_score == 0 or rank_score < 0.8:
             continue
         if qa_score > 0.7:
             had_seen_pid.append(pid.split('seg')[0])
-            title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+            title, src = response[pid]['title'], response[pid]['src']
             text = "{'dqa':{'ans': '%s', 'title': '%s', 'src': '%s'}}" % (ans, title, src)
             buttons.append({"title": text, "payload": ''})
             break
@@ -328,7 +410,7 @@ def search_in_dqa(user_query, dispatcher):
         for pid in pid_set:
             if pid.split('seg')[0] not in had_seen_pid:
                 had_seen_pid.append(pid.split('seg')[0])
-                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                title, src = response[pid]['title'], response[pid]['src']
                 text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
                 buttons.append({"title": text, "payload": ''})
         dispatcher.utter_message(text=' ', buttons=buttons)
@@ -340,7 +422,7 @@ def search_in_dqa(user_query, dispatcher):
         for pid in pid_set:
             if pid.split('seg')[0] not in had_seen_pid:
                 had_seen_pid.append(pid.split('seg')[0])
-                title, src = documents_ranked[pid]['title'], documents_ranked[pid]['src']
+                title, src = response[pid]['title'], response[pid]['src']
                 text = "{'dqa':{'title': '%s', 'src': '%s'}}" % (title, src)
                 buttons.append({"title": text, "payload": ''})
         dispatcher.utter_message(text=message_title, buttons=buttons)
@@ -589,23 +671,17 @@ class FindTheCorrespondingWEATHER(Action):
         return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
-def _compute_softmax(scores):
+def _compute_norm(scores):
     qid = list(scores.keys())
     scores = list(scores.values())
 
-    max_score = None
-    for score in scores:
-        if max_score is None or score > max_score:
-            max_score = score
+    min_, max_ = min(scores), max(scores)
+    diff = max_ - min_
+    norm_scores = []
+    for sco in scores:
+        if diff > 0:
+            norm_scores.append((sco - min_) / diff)
+        else:
+            norm_scores.append(1)
 
-    exp_scores = []
-    total_sum = 0.0
-    for score in scores:
-        x = math.exp(score - max_score)
-        exp_scores.append(x)
-        total_sum += x
-
-    probs = []
-    for score in exp_scores:
-        probs.append(score / total_sum)
-    return OrderedDict({i: j for i, j in zip(qid, probs)})
+    return OrderedDict({i: j for i, j in zip(qid, norm_scores)})
