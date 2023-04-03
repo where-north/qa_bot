@@ -122,7 +122,7 @@ class ActionDefaultAskAffirmation(Action):
             domain: DomainDict,
     ) -> List[EventType]:
 
-        clear_slots = ['department', 'CQA_has_started']
+        clear_slots = ['department', 'CQA_has_started', 'DQA_has_started']
         slots_data = domain.get("slots")
 
         intent_ranking = tracker.latest_message.get("intent_ranking", [])
@@ -183,7 +183,7 @@ class ActionDefaultAskAffirmation(Action):
                     else:
                         buttons.append({"title": text, "payload": f"/{intent}"})
 
-                buttons.append({"title": "{'affirmation':{'query': '以上都不是'}}", "payload": "/deny"})
+                buttons.append({"title": "{'affirmation':{'query': '以上都不是'}}", "payload": "/ask_rephrase"})
 
                 dispatcher.utter_message(text=message_title, buttons=buttons)
             else:
@@ -228,32 +228,6 @@ class ActionDefaultFallback(Action):
         dispatcher.utter_message(template="utter_stilldontunderstand")
         return [UserUtteranceReverted()] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
                                             slot_name in clear_slots]
-
-
-def check_last_event(tracker, event_type: Text, skip: int = 2, window: int = 3, slots_data=None) -> bool:
-    """
-    @param slots_data:
-    @param tracker:
-    @param event_type: 事件名称
-    @param skip: 从最近的倒数第几个事件开始遍历
-    @param window: 遍历长度
-    @return:
-    """
-    skipped = 0
-    count = 0
-    ignore_events = ['action_listen', None]
-    ignore_events.extend(list(slots_data.keys()))
-    for e in reversed(tracker.events):
-        e_name = e.get('name')
-        if e_name not in ignore_events:
-            count += 1
-            if count > window:
-                return False
-            if e_name == event_type:
-                skipped += 1
-                if skipped > skip:
-                    return True
-    return False
 
 
 def search_in_cqa(user_query, dispatcher):
@@ -452,7 +426,7 @@ class ActionTriggerResponseSelector(Action):
             tracker: Tracker,
             domain: Dict[Text, Any],
     ) -> List[EventType]:
-        clear_slots = ['department', 'CQA_has_started']
+        clear_slots = ['department', 'CQA_has_started', 'DQA_has_started']
         slots_data = domain.get("slots")
 
         main_intent = tracker.latest_message.get("intent").get("name")
@@ -466,6 +440,10 @@ class ActionTriggerResponseSelector(Action):
         user_query = tracker.latest_message.get("text")
         if user_query[0] == '/':
             user_query = tracker.get_slot('user_query')
+        if not user_query:
+            # 如果用户之前没有问过问题，但发送了deny意图，直接回复抱歉
+            dispatcher.utter_message(template='utter_canthelp')
+            return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
         first_full_intent_confidence = 0
         full_intent = None
@@ -490,19 +468,18 @@ class ActionTriggerResponseSelector(Action):
                 dispatcher.utter_message(template=f"utter_{full_intent}")
             # full_intent是“/XX/其他”子意图（因为意图的置信度已超过0.9，所以没必要再进行FAQ相似问题推荐，可以直接进行CQA DQA）
             else:
-                # TODO 这里的判断有存在的必要？deny意图会在这里触发CQA DQA吗？
-                if not user_query:
-                    # 如果用户之前没有问过问题，但发送了deny意图触发了CQA DQA，直接回复抱歉
-                    dispatcher.utter_message(template='utter_canthelp')
-                    return [SlotSet('department', slots_data.get('department')['initial_value'])]
                 cqa_confidence_lt_threshold = search_in_cqa(user_query, dispatcher)
                 # cqa 置信度大于阈值
                 if cqa_confidence_lt_threshold:
                     return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
-                        SlotSet('department', slots_data.get('department')['initial_value'])]
+                        SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
+                        slot_name in ['department', 'DQA_has_started']]
                 # 否则，直接DQA
                 else:
                     search_in_dqa(user_query, dispatcher)
+                    return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)] + [
+                        SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
+                        slot_name in ['department']]
         # 意图的置信度小于0.9但大于0.8，可以进行FAQ相似问题推荐
         elif first_full_intent_confidence > 0.8:
             sub_intents = tracker.latest_message.get("response_selector", {}).get(main_intent, {}).get("ranking")
@@ -522,19 +499,18 @@ class ActionTriggerResponseSelector(Action):
             dispatcher.utter_message(text=message_title, buttons=buttons)
         # 意图的置信度小于0.8，直接进行CQA DQA
         else:
-            # TODO 这里的判断有存在的必要？deny意图会在这里触发CQA DQA吗？
-            if not user_query:
-                # 如果用户之前没有问过问题，但发送了deny意图触发了CQA DQA，直接回复抱歉
-                dispatcher.utter_message(template='utter_canthelp')
-                return [SlotSet('department', slots_data.get('department')['initial_value'])]
             cqa_confidence_lt_threshold = search_in_cqa(user_query, dispatcher)
             # cqa 置信度大于阈值
             if cqa_confidence_lt_threshold:
                 return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)] + [
-                    SlotSet('department', slots_data.get('department')['initial_value'])]
+                    SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
+                    slot_name in ['department', 'DQA_has_started']]
             # 否则，直接DQA
             else:
                 search_in_dqa(user_query, dispatcher)
+                return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)] + [
+                    SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
+                    slot_name in ['department']]
 
         return [SlotSet('user_query', user_query)] + [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for
                                                       slot_name in clear_slots]
@@ -551,11 +527,11 @@ class ActionTriggerResponseSelector(Action):
         return button_title
 
 
-class ActionCommunityQA(Action):
-    """Start the CommunityQA"""
+class ActionDeny(Action):
+    """Start the CommunityQA or DocumentQA"""
 
     def name(self) -> Text:
-        return "action_community_qa"
+        return "action_deny"
 
     def run(
             self,
@@ -563,42 +539,27 @@ class ActionCommunityQA(Action):
             tracker: Tracker,
             domain: Dict[Text, Any],
     ) -> List[EventType]:
-        clear_slots = ['department', 'CQA_has_started']
+
+        clear_slots = ['department', 'CQA_has_started', 'DQA_has_started']
         slots_data = domain.get("slots")
+
         user_query = tracker.get_slot('user_query')
+        CQA_has_started = tracker.get_slot("CQA_has_started")
+        DQA_has_started = tracker.get_slot("DQA_has_started")
         if not user_query:
             # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
             dispatcher.utter_message(template='utter_canthelp')
-            return [SlotSet('department', slots_data.get('department')['initial_value'])]
+            return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
-        search_in_cqa(user_query, dispatcher)
-
-        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
-
-
-class ActionDocumentQA(Action):
-    """Start the DocumentQA"""
-
-    def name(self) -> Text:
-        return "action_document_qa"
-
-    def run(
-            self,
-            dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any],
-    ) -> List[EventType]:
-        clear_slots = ['department', 'CQA_has_started']
-        slots_data = domain.get("slots")
-        user_query = tracker.get_slot('user_query')
-        if not user_query:
-            # 如果用户之前没有问过问题，但触发了deny意图，直接回复抱歉
+        if not CQA_has_started and not DQA_has_started:
+            search_in_cqa(user_query, dispatcher)
+            return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)]
+        elif not DQA_has_started:
+            search_in_dqa(user_query, dispatcher)
+            return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)]
+        else:
             dispatcher.utter_message(template='utter_canthelp')
-            return [SlotSet('department', slots_data.get('department')['initial_value'])]
-
-        search_in_dqa(user_query, dispatcher)
-
-        return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
+            return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
 class FindTheCorrespondingWEATHER(Action):

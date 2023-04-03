@@ -1,130 +1,136 @@
 version: "2.0"
 stories:
-- story: canthelp
-  steps:
-    - intent: canthelp
-    - action: utter_canthelp
+  - story: 教学教务
+    steps:
+      - intent: 教学教务
+      - action: action_trigger_response_selector
 
-- story: deny
-  steps:
-    - intent: deny
-    - action: utter_contact_human
+  - story: 奖助学金
+    steps:
+      - intent: 奖助学金
+      - action: action_trigger_response_selector
 
-- story: thank
-  steps:
-    - intent: thank
-    - action: utter_noworries
+  - story: 补考缓考
+    steps:
+      - intent: 补考缓考
+      - action: action_trigger_response_selector
 
-- story: bye
-  steps:
-    - intent: bye
-    - action: utter_bye
+  - story: 选课事宜
+    steps:
+      - intent: 选课事宜
+      - action: action_trigger_response_selector
 
-- story: human_handoff
-  steps:
-    - intent: human_handoff
-    - action: utter_contact_human
+  - story: 专业修读
+    steps:
+      - intent: 专业修读
+      - action: action_trigger_response_selector
 
-- story: react_negative
-  steps:
-    - intent: react_negative
-    - action: utter_react_negative
+  - story: 后勤服务
+    steps:
+      - intent: 后勤服务
+      - action: action_trigger_response_selector
 
-- story: react_positive
-  steps:
-    - intent: react_positive
-    - action: utter_react_positive
+  - story: 宿舍服务
+    steps:
+      - intent: 宿舍服务
+      - action: action_trigger_response_selector
 
-- story: greet
-  steps:
-    - intent: greet
-    - action: action_greet_user
+  - story: 图书馆服务
+    steps:
+      - intent: 图书馆服务
+      - action: action_trigger_response_selector
 
-- story: 教学教务
-  steps:
-    - intent: 教学教务
-    - action: action_trigger_response_selector
+  - story: 就业指导
+    steps:
+      - intent: 就业指导
+      - action: action_trigger_response_selector
 
-- story: 奖助学金
-  steps:
-    - intent: 奖助学金
-    - action: action_trigger_response_selector
+  - story: 学生证件
+    steps:
+      - intent: 学生证件
+      - action: action_trigger_response_selector
 
-- story: 补考缓考
-  steps:
-    - intent: 补考缓考
-    - action: action_trigger_response_selector
+  - story: 校医院
+    steps:
+      - intent: 校医院
+      - action: action_trigger_response_selector
 
-- story: 选课事宜
-  steps:
-    - intent: 选课事宜
-    - action: action_trigger_response_selector
+  - story: 校园网服务
+    steps:
+      - intent: 校园网服务
+      - action: action_trigger_response_selector
 
-- story: 专业修读
-  steps:
-    - intent: 专业修读
-    - action: action_trigger_response_selector
+  - story: 本科生招生
+    steps:
+      - intent: 本科生招生
+      - action: action_trigger_response_selector
 
-- story: 后勤服务
-  steps:
-    - intent: 后勤服务
-    - action: action_trigger_response_selector
+  - story: 研究生招生
+    steps:
+      - intent: 研究生招生
+      - action: action_trigger_response_selector
 
-- story: 宿舍服务
-  steps:
-    - intent: 宿舍服务
-    - action: action_trigger_response_selector
+  - story: 迎新服务
+    steps:
+      - intent: 迎新服务
+      - action: action_trigger_response_selector
 
-- story: 图书馆服务
-  steps:
-    - intent: 图书馆服务
-    - action: action_trigger_response_selector
+  - story: 常用联系方式
+    steps:
+      - intent: 常用联系方式
+      - action: action_trigger_response_selector
 
-- story: 就业指导
-  steps:
-    - intent: 就业指导
-    - action: action_trigger_response_selector
+  - story: 查询天气
+    steps:
+      - intent: 查询天气
+      - action: FindTheCorrespondingweather
 
-- story: 学生证件
-  steps:
-    - intent: 学生证件
-    - action: action_trigger_response_selector
+  - story: bye
+    steps:
+      - intent: bye
+      - action: utter_bye
 
-- story: 校医院
-  steps:
-    - intent: 校医院
-    - action: action_trigger_response_selector
+  - story: canthelp
+    steps:
+      - intent: canthelp
+      - action: utter_canthelp
 
-- story: 校园网服务
-  steps:
-    - intent: 校园网服务
-    - action: action_trigger_response_selector
+  - story: human_handoff
+    steps:
+      - intent: human_handoff
+      - action: utter_contact_human
 
-- story: 本科生招生
-  steps:
-    - intent: 本科生招生
-    - action: action_trigger_response_selector
+  - story: react_negative
+    steps:
+      - intent: react_negative
+      - action: utter_react_negative
 
-- story: 研究生招生
-  steps:
-    - intent: 研究生招生
-    - action: action_trigger_response_selector
+  - story: react_positive
+    steps:
+      - intent: react_positive
+      - action: utter_react_positive
 
-- story: 迎新服务
-  steps:
-    - intent: 迎新服务
-    - action: action_trigger_response_selector
+  - story: thank
+    steps:
+      - intent: thank
+      - action: utter_noworries
 
-- story: 常用联系方式
-  steps:
-    - intent: 常用联系方式
-    - action: action_trigger_response_selector
+  - story: greet
+    steps:
+      - intent: greet
+      - action: action_greet_user
+        
+  - story: Single stage fallback
+    steps:
+      - intent: nlu_fallback
+      - action: action_default_ask_affirmation
 
-- story: 查询天气
-  steps:
-    - intent: 查询天气
-    - action: FindTheCorrespondingweather
+  - story: ask_rephrase
+    steps:
+      - intent: ask_rephrase
+      - action: utter_ask_rephrase
 
-
-
-
+  - story: deny
+    steps:
+      - intent: deny
+      - action: action_deny

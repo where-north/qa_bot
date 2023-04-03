@@ -117,3 +117,7 @@ rules:
       - intent: thank
       - action: utter_noworries
 
+  - rule: greet
+    steps:
+      - intent: greet
+      - action: action_greet_user

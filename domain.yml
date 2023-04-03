@@ -7,6 +7,7 @@ intents:
 - canthelp
 - deny
 - greet
+- ask_rephrase
 - human_handoff
 - nlu_fallback
 - react_negative
@@ -57,6 +58,10 @@ slots:
     type: bool
     initial_value: false
     influence_conversation: true
+  DQA_has_started:
+    type: bool
+    initial_value: false
+    influence_conversation: true
 
 responses:
   utter_weather_exception:
@@ -65,16 +70,13 @@ responses:
   - text: <div class='msg-text'>需要转到人工服务吗？</div>
   utter_greet:
   - text: <div class='msg-text'>您好！请问有什么可以帮到您？</div>
-  utter_anything_else:
-  - text: <div class='msg-text'>还有什么我可以帮你的吗？</div>
   utter_bye:
   - text: <div class='msg-text'>拜拜!</div>
   - text: <div class='msg-text'>Bye!</div>
-  - text: <div class='msg-text'>再见</div>
-  - text: <div class='msg-text'>再见，很高兴与您交谈！</div>
+  - text: <div class='msg-text'>再见！</div>
   - text: <div class='msg-text'>Bye bye!</div>
   utter_canthelp:
-  - text: <div class='msg-text'>很抱歉没能帮到你。</div>
+  - text: <div class='msg-text'>很抱歉没能帮到你。😞</div>
   utter_stilldontunderstand:
   - text: <div class='msg-text'>我还是不太明白，很抱歉没能帮到你。</div>
   utter_default:
@@ -83,16 +85,14 @@ responses:
   - text: <div class='msg-text'>对不起，我没听懂你的意思。可以再具体点吗？</div>
   - text: <div class='msg-text'>我不太明白，你可以再具体点吗？</div>
   utter_greet_noname:
-  - text: <div class='msg-text'>嗨!</div>
-  - text: <div class='msg-text'>你好!</div>
-  - text: <div class='msg-text'>嘿!</div>
+  - text: <div class='msg-text'>嗨！我有什么可以帮你的？</div>
+  - text: <div class='msg-text'>你好！我有什么可以帮你的？</div>
+  - text: <div class='msg-text'>嘿！我有什么可以帮你的？</div>
   utter_inform_privacypolicy:
   - text: <div class='msg-text'>与我聊天即表示您同意我们的<a class='response-inner-text-a' href='https://rasa.com/privacy-policy/' target='_blank'>隐私政策</a>。</div>
-  utter_nohelp:
-  - text: <div class='msg-text'>目前我能做的就是这些。如果您对我应该学习的内容有任何建议，请告诉我！</div>
   utter_noworries:
-  - text: <div class='msg-text'>别客气！</div>
-  - text: <div class='msg-text'>我很乐意提供帮助。</div>
+  - text: <div class='msg-text'>别客气！😄</div>
+  - text: <div class='msg-text'>很高兴能帮到你！😊</div>
   utter_react_negative:
   - text: <div class='msg-text'>😕</div>
   - text: <div class='msg-text'>😞</div>
@@ -103,10 +103,6 @@ responses:
   - text: <div class='msg-text'>😊</div>
   - text: <div class='msg-text'>👏</div>
   - text: <div class='msg-text'>😍</div>
-  utter_thumbsup:
-  - text: <div class='msg-text'>好的</div>
-  utter_what_help:
-  - text: <div class='msg-text'>好的，我有什么可以帮你的？</div>
   utter_ask_rephrase:
   - text: <div class='msg-text'>我不太明白，你可以描述得更具体点吗？</div>
 actions:
@@ -114,8 +110,7 @@ actions:
 - action_default_ask_affirmation
 - action_default_fallback
 - action_greet_user
-- action_community_qa
-- action_document_qa
+- action_deny
 #- action_query_weather # 免费
 - FindTheCorrespondingweather # 可能要钱
 

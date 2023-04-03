@@ -206,4 +206,9 @@ nlu:
     - 感谢您
     - 是啊谢谢
 
+- intent: ask_rephrase
+  examples: |
+    - 再问一次
+    - 具体再问一次
+    - 请再问一次
 
