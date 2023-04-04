@@ -347,7 +347,14 @@ def search_in_dqa(user_query, dispatcher):
     logger.info(f'dqa: {user_query}')
     payload = {'user_query': f'{user_query}'}
     response = requests.post(DQA_DE_URL, json=payload).json()['result_dict']
-    logger.info(f'document rank score: {[round(i["score"], 4) for i in response.values()]}')
+    rank_scores = [round(i["score"], 5) for i in response.values()]
+    logger.info(f'document rank score: {rank_scores}')
+
+    # 小于阈值，不进行DQA
+    if rank_scores[0] < 0.89:
+        dispatcher.utter_message(text="<div class='msg-text'>抱歉！未能在数据库中找到更多信息😞<br><br>您可以拨打下列相关部门的电话进行咨询：</div>")
+        dispatcher.utter_message(template='utter_常用联系方式/校内常用电话')
+        return
 
     input_datas = []
     pid_set = []
@@ -558,7 +565,8 @@ class ActionDeny(Action):
             search_in_dqa(user_query, dispatcher)
             return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)]
         else:
-            dispatcher.utter_message(template='utter_canthelp')
+            dispatcher.utter_message(text="<div class='msg-text'>抱歉！未能在数据库中找到更多信息😞<br><br>您可以拨打下列相关部门的电话进行咨询：</div>")
+            dispatcher.utter_message(template='utter_常用联系方式/校内常用电话')
             return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
 
