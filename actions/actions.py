@@ -126,21 +126,22 @@ class ActionDefaultAskAffirmation(Action):
         slots_data = domain.get("slots")
 
         intent_ranking = tracker.latest_message.get("intent_ranking", [])
-        # 如果排序第一的意图的置信度低于0.8，不进行意图澄清，直接调用chat api回复
+        user_query = tracker.latest_message.get("text")
+        logger.info(f"user_query: {user_query} fallback_intent_ranking: {intent_ranking[:3]}")
+        # 如果排序第二（第一是nlu fallback）的意图的置信度低于0.9，不进行意图澄清，直接调用chat api回复
         # TODO chat api 插入点
-        if intent_ranking[0].get("confidence") < 0.8:
-            user_query = tracker.latest_message.get("text")
+        if intent_ranking[1].get("confidence") < 0.9:
             dispatcher.utter_message(template="utter_out_of_scope")
         else:
             # 排序第二的意图与第一的意图的置信度相差在0.2之内，推荐两个意图，否则仅第一个
             if len(intent_ranking) > 1:
-                diff_intent_confidence = intent_ranking[0].get(
+                diff_intent_confidence = intent_ranking[1].get(
                     "confidence"
-                ) - intent_ranking[1].get("confidence")
+                ) - intent_ranking[2].get("confidence")
                 if diff_intent_confidence < 0.2:
-                    intent_ranking = intent_ranking[:2]
+                    intent_ranking = intent_ranking[:3]
                 else:
-                    intent_ranking = intent_ranking[:1]
+                    intent_ranking = intent_ranking[:2]
 
             first_intent_names = [
                 intent.get("name", "")
@@ -158,8 +159,6 @@ class ActionDefaultAskAffirmation(Action):
                 first_intent_names.remove("nlu_fallback")
             if "greet" in first_intent_names:
                 first_intent_names.remove("greet")
-
-            user_query = tracker.latest_message.get("text")
 
             if len(first_intent_names) > 0:
                 message_title = (
@@ -352,7 +351,8 @@ def search_in_dqa(user_query, dispatcher):
 
     # 小于阈值，不进行DQA
     if rank_scores[0] < 0.89:
-        dispatcher.utter_message(text="<div class='msg-text'>抱歉！未能在数据库中找到更多信息😞<br><br>您可以拨打下列相关部门的电话进行咨询：</div>")
+        dispatcher.utter_message(
+            text=f"<div class='msg-text'>抱歉！未能在数据库中找到更多可以回答“{user_query}”的信息😞<br><br>您可以拨打下列相关部门的电话进行咨询：</div>")
         dispatcher.utter_message(template='utter_常用联系方式/校内常用电话')
         return
 
@@ -370,6 +370,8 @@ def search_in_dqa(user_query, dispatcher):
         input_datas.append(input_data)
 
     results = requests.post(QA_URL, json=input_datas).json()['predict']
+
+    logger.info(results)
 
     buttons = []
     # 同一文档可能召回多个切片
@@ -437,7 +439,8 @@ class ActionTriggerResponseSelector(Action):
         slots_data = domain.get("slots")
 
         main_intent = tracker.latest_message.get("intent").get("name")
-        logger.info(f"main_intent: {main_intent}")
+        main_intent_confidence = tracker.latest_message.get("intent").get("confidence")
+        logger.info(f"main_intent: {main_intent} confidence: {main_intent_confidence}")
         # 如果接收的是“/XX/XX”类似的意图消息，直接utter_/XX/XX（对应客户端直接选择的常见问题）
         if '/' in main_intent and '/其他' != main_intent[-3:]:
             dispatcher.utter_message(response=f"utter_{main_intent}")
@@ -559,13 +562,20 @@ class ActionDeny(Action):
             return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 
         if not CQA_has_started and not DQA_has_started:
-            search_in_cqa(user_query, dispatcher)
-            return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)]
+            cqa_confidence_lt_threshold = search_in_cqa(user_query, dispatcher)
+            # cqa 置信度大于阈值
+            if cqa_confidence_lt_threshold:
+                return [SlotSet('user_query', user_query)] + [SlotSet('CQA_has_started', True)]
+            # 否则，直接DQA
+            else:
+                search_in_dqa(user_query, dispatcher)
+                return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)]
         elif not DQA_has_started:
             search_in_dqa(user_query, dispatcher)
             return [SlotSet('user_query', user_query)] + [SlotSet('DQA_has_started', True)]
         else:
-            dispatcher.utter_message(text="<div class='msg-text'>抱歉！未能在数据库中找到更多信息😞<br><br>您可以拨打下列相关部门的电话进行咨询：</div>")
+            dispatcher.utter_message(
+                text=f"<div class='msg-text'>抱歉！未能在数据库中找到更多可以回答“{user_query}”的信息😞<br><br>您可以拨打下列相关部门的电话进行咨询：</div>")
             dispatcher.utter_message(template='utter_常用联系方式/校内常用电话')
             return [SlotSet(slot_name, slots_data.get(slot_name)['initial_value']) for slot_name in clear_slots]
 

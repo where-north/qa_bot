@@ -6,14 +6,14 @@ Time    : 2022/11/17 19:46
 Desc:
 """
 
-# ES docker容器内部的IP
-ES_DOCKER_IP = "172.17.0.3"
-# CQA DQA model docker容器内部的IP
-QA_DOCKER_IP = "172.17.0.2"
-# Chat Api docker容器内部的IP
-CHAT_DOCKER_IP = "172.17.0.7"
-# dual encoder model docker容器内部的IP
-DE_DOCKER_IP = "172.17.0.8"
+# ES docker容器的IP
+ES_DOCKER_IP = "172.31.158.98"
+# CQA DQA model docker容器的IP
+QA_DOCKER_IP = "172.31.158.98"
+# Chat Api docker容器的IP
+CHAT_DOCKER_IP = "172.31.158.98"
+# dual encoder model docker容器的IP
+DE_DOCKER_IP = "172.31.158.98"
 # chatgpt url
 CHAT_URL = f'http://{CHAT_DOCKER_IP}:8888/chat'
 # CQA召回url
